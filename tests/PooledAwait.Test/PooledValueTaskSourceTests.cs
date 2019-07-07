@@ -4,7 +4,7 @@ using Xunit;
 
 namespace PooledAwait.Test
 {
-    public class UnitTest1
+    public class PooledValueTaskSourceTests
     {
         [Fact]
         public void CreateAndSet()

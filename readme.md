@@ -7,7 +7,7 @@ Well... what about if there just **wasn't**?
 
 And what if all you had to do was change your `async ValueTask<int>` method to `async PooledValueTask<int>`?
 
-And I here you; you're saying "but I can't change the public API!". But what if a `PooledValueTask<int>` really *was*
+And I hear you; you're saying "but I can't change the public API!". But what if a `PooledValueTask<int>` really *was*
 a `ValueTask<int>`? So you can just cheat:
 
 ``` c#
