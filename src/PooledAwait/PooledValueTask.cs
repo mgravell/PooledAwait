@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace PooledAwait
 {
-    [AsyncMethodBuilder(typeof(PooledValueTaskBuilder))]
+    [AsyncMethodBuilder(typeof(TaskBuilders.PooledValueTaskBuilder))]
     public readonly struct PooledValueTask
     {
         private readonly PooledState? _source;

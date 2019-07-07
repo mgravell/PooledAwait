@@ -1,42 +1,47 @@
 ﻿using PooledAwait.Internal;
 using System;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
-namespace PooledAwait
+namespace PooledAwait.TaskBuilders
 {
-    public struct PooledValueTaskBuilder<T>
+    public struct PooledTaskBuilder
     {
-        private PooledState<T>? _state;
-        private short _token;
-        private T _result;
+        private TaskCompletionSource<bool>? _state;
+        private Exception _exception;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static PooledValueTaskBuilder<T> Create() => default;
+        public static PooledTaskBuilder Create() => default;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetStateMachine(IAsyncStateMachine _) => AllocCounters.IncrSetStateMachine();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetResult(T result)
+        public void SetResult()
         {
-            _state?.TrySetResult(result, _token);
-            _result = result;
+            _state?.TrySetResult(true);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetException(Exception exception)
         {
-            EnsureState().TrySetException(exception, _token);
+            EnsureState().TrySetException(exception);
+            _exception = exception;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private PooledState<T> EnsureState() => _state ?? CreateState();
+        private TaskCompletionSource<bool> EnsureState() => _state ?? CreateState();
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private PooledState<T> CreateState() => _state ?? (_state = PooledState<T>.Create(out _token));
+        private TaskCompletionSource<bool> CreateState() => _state ?? (_state = new TaskCompletionSource<bool>());
 
-        public PooledValueTask<T> Task
+        public PooledTask Task
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _state == null ? new PooledValueTask<T>(_result) : _state.PooledValueTask;
+            get
+            {
+                if (_state != null) return new PooledTask(_state);
+                if (_exception != null) return new PooledTask(_exception);
+                return default;
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

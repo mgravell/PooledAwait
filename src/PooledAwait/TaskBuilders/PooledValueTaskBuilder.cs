@@ -2,7 +2,7 @@
 using System;
 using System.Runtime.CompilerServices;
 
-namespace PooledAwait
+namespace PooledAwait.TaskBuilders
 {
     public struct PooledValueTaskBuilder
     {
