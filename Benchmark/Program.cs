@@ -1,7 +1,7 @@
 ﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 using PooledAwait;
-using System;
 using System.Threading.Tasks;
 
 namespace Benchmark
@@ -25,12 +25,15 @@ namespace Benchmark
     }
 
     [MemoryDiagnoser, ShortRunJob]
+    [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
+    [CategoriesColumn]
     public class Awaitable
     {
         private const int InnerOps = 1000;
 
-        [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(Task<int>), Baseline = true)]
-        public async Task<int> ViaTask()
+        [Benchmark(OperationsPerInvoke = InnerOps, Description = "T")]
+        [BenchmarkCategory(nameof(Task))]
+        public async Task<int> ViaTaskT()
         {
             int sum = 0;
             for (int i = 0; i < InnerOps; i++)
@@ -46,8 +49,23 @@ namespace Benchmark
             }
         }
 
-        [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(ValueTask<int>))]
-        public async ValueTask<int> ViaValueTask()
+        [Benchmark(OperationsPerInvoke = InnerOps, Description = "void")]
+        [BenchmarkCategory(nameof(Task))]
+        public async Task ViaTask()
+        {
+            for (int i = 0; i < InnerOps; i++)
+                await Inner().ConfigureAwait(false);
+
+            static async Task Inner()
+            {
+                await Task.Yield();
+                await Task.Yield();
+            }
+        }
+
+        [Benchmark(OperationsPerInvoke = InnerOps, Description = "T")]
+        [BenchmarkCategory(nameof(ValueTask))]
+        public async ValueTask<int> ViaValueTaskT()
         {
             int sum = 0;
             for (int i = 0; i < InnerOps; i++)
@@ -63,28 +81,68 @@ namespace Benchmark
             }
         }
 
-        // this should work, but it doesn't, because https://github.com/dotnet/BenchmarkDotNet/issues/1193
-        // [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(TaskLike<int>))]
-        public ValueTask<int> ViaTaskLike() => ViaTaskLikeImpl();
-
-        // workaround is to add an "await"
-        [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(PooledValueTask<int>))]
-        public async ValueTask<int> ViaTaskLikeAwaited() => await ViaTaskLikeImpl();
-
-        private async PooledValueTask<int> ViaTaskLikeImpl()
+        [Benchmark(OperationsPerInvoke = InnerOps, Description = "void")]
+        [BenchmarkCategory(nameof(ValueTask))]
+        public async ValueTask ViaValueTask()
         {
-            int sum = 0;
             for (int i = 0; i < InnerOps; i++)
-                sum += await Inner(1, 2).ConfigureAwait(false);
-            return sum;
-            static async PooledValueTask<int> Inner(int x, int y)
+                await Inner().ConfigureAwait(false);
+            static async ValueTask Inner()
             {
-                int i = x;
                 await Task.Yield();
-                i *= y;
                 await Task.Yield();
-                return 5 * i;
             }
         }
+
+        // this should work, but it doesn't, because https://github.com/dotnet/BenchmarkDotNet/issues/1193
+        // [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(TaskLike<int>))]
+        public ValueTask<int> ViaPooledValueTaskT()
+        {
+            return Impl(); // thunks the type back to ValueTaskT
+
+            async PooledValueTask<int> Impl()
+            {
+                int sum = 0;
+                for (int i = 0; i < InnerOps; i++)
+                    sum += await Inner(1, 2).ConfigureAwait(false);
+                return sum;
+                static async PooledValueTask<int> Inner(int x, int y)
+                {
+                    int i = x;
+                    await Task.Yield();
+                    i *= y;
+                    await Task.Yield();
+                    return 5 * i;
+                }
+            }
+        }
+
+        // workaround is to add an "await"
+        [Benchmark(OperationsPerInvoke = InnerOps, Description = "T")]
+        [BenchmarkCategory(nameof(PooledValueTask))]
+        public async ValueTask<int> ViaPooledValueTaskTAwaited() => await ViaPooledValueTaskT();
+
+        // this should work, but it doesn't, because https://github.com/dotnet/BenchmarkDotNet/issues/1193
+        // [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(TaskLike))]
+        public ValueTask ViaPooledValueTask()
+        {
+            return Impl(); // thunks the type back to ValueTaskT
+
+            async PooledValueTask Impl()
+            {
+                for (int i = 0; i < InnerOps; i++)
+                    await Inner().ConfigureAwait(false);
+                static async PooledValueTask Inner()
+                {
+                    await Task.Yield();
+                    await Task.Yield();
+                }
+            }
+        }
+
+        // workaround is to add an "await"
+        [Benchmark(OperationsPerInvoke = InnerOps, Description = "void")]
+        [BenchmarkCategory(nameof(PooledValueTask))]
+        public async ValueTask ViaPooledValueTaskAwaited() => await ViaPooledValueTask();
     }
 }
