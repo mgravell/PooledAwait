@@ -45,7 +45,7 @@ namespace PooledAwait.Internal
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private void WaitForResult(short token)
         {
             lock (SyncLock)
@@ -53,6 +53,18 @@ namespace PooledAwait.Internal
                 if (token == _source.Version && _source.GetStatus(token) == ValueTaskSourceStatus.Pending)
                 {
                     Monitor.Wait(SyncLock);
+                }
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void SignalResult(short token)
+        {
+            lock (SyncLock)
+            {
+                if (token == _source.Version && _source.GetStatus(token) != ValueTaskSourceStatus.Pending)
+                {
+                    Monitor.Pulse(SyncLock);
                 }
             }
         }
@@ -72,18 +84,16 @@ namespace PooledAwait.Internal
 
         public bool TrySetException(Exception error, short token)
         {
-            lock (SyncLock)
+            if (token == _source.Version)
             {
-                if (token == _source.Version)
-                {
 
-                    switch (_source.GetStatus(token))
-                    {
-                        case ValueTaskSourceStatus.Pending:
-                            _source.SetException(error);
-                            Monitor.Pulse(SyncLock);
-                            return true;
-                    }
+                switch (_source.GetStatus(token))
+                {
+                    case ValueTaskSourceStatus.Pending:
+                        _source.SetException(error);
+                        // only need to signal if SetException didn't inline a handler
+                        if (token == _source.Version) SignalResult(token);
+                        return true;
                 }
             }
             return false;
@@ -91,17 +101,15 @@ namespace PooledAwait.Internal
 
         public bool TrySetResult(T result, short token)
         {
-            lock (SyncLock)
+            if (token == _source.Version)
             {
-                if (token == _source.Version)
+                switch (_source.GetStatus(token))
                 {
-                    switch (_source.GetStatus(token))
-                    {
-                        case ValueTaskSourceStatus.Pending:
-                            _source.SetResult(result);
-                            Monitor.Pulse(SyncLock);
-                            return true;
-                    }
+                    case ValueTaskSourceStatus.Pending:
+                        _source.SetResult(result);
+                        // only need to signal if SetResult didn't inline a handler
+                        if (token == _source.Version) SignalResult(token);
+                        return true;
                 }
             }
             return false;
