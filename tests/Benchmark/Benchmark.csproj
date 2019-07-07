@@ -9,6 +9,6 @@
     <PackageReference Include="BenchmarkDotNet" Version="0.11.5.1113" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\src\PooledAwait\PooledAwait.csproj" />
+    <ProjectReference Include="..\..\src\PooledAwait\PooledAwait.csproj" />
   </ItemGroup>
 </Project>

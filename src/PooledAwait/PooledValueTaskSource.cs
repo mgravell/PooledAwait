@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace PooledAwait
 {
@@ -11,6 +12,11 @@ namespace PooledAwait
     public readonly struct PooledValueTaskSource
     {
         /// <summary>
+        /// Gets the task that corresponds to this instance; it can only be awaited once
+        /// </summary>
+        public ValueTask Task => new PooledValueTask(_source, _token).AsValueTask();
+
+        /// <summary>
         /// Rents a task-source that will be recycled when the task is awaited
         /// </summary>
         public static PooledValueTaskSource Create()
@@ -19,7 +25,7 @@ namespace PooledAwait
             return new PooledValueTaskSource(source, token);
         }
 
-        private readonly PooledState? _source;
+        private readonly PooledState _source;
         private readonly short _token;
 
         internal PooledValueTaskSource(PooledState source, short token)

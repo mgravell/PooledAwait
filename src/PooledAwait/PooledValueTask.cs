@@ -10,7 +10,12 @@ namespace PooledAwait
     [AsyncMethodBuilder(typeof(TaskBuilders.PooledValueTaskBuilder))]
     public readonly struct PooledValueTask
     {
-        private readonly PooledState? _source;
+        /// <summary>
+        /// Gets the task that corresponds to this instance; it can only be awaited once
+        /// </summary>
+        public PooledValueTask Task => new PooledValueTask(_source, _token);
+
+        private readonly PooledState _source;
         private readonly short _token;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

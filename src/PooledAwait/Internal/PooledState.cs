@@ -45,7 +45,7 @@ namespace PooledAwait.Internal
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        ValueTaskSourceStatus IValueTaskSource.GetStatus(short token) => _source.GetStatus(token);
+        public ValueTaskSourceStatus GetStatus(short token) => _source.GetStatus(token);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void IValueTaskSource.OnCompleted(Action<object?> continuation, object? state, short token, ValueTaskSourceOnCompletedFlags flags)
