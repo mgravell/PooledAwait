@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Sources;
 
@@ -34,6 +35,7 @@ namespace PooledAwait.Internal
             // the source and advances the token
             try
             {
+                if (_source.GetStatus(token) == ValueTaskSourceStatus.Pending) WaitForResult(token);
                 _source.GetResult(token);
             }
             finally
@@ -45,28 +47,63 @@ namespace PooledAwait.Internal
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void WaitForResult(short token)
+        {
+            lock (SyncLock)
+            {
+                if (token == _source.Version && _source.GetStatus(token) == ValueTaskSourceStatus.Pending)
+                {
+                    Monitor.Wait(SyncLock);
+                }
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ValueTaskSourceStatus GetStatus(short token) => _source.GetStatus(token);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void IValueTaskSource.OnCompleted(Action<object?> continuation, object? state, short token, ValueTaskSourceOnCompletedFlags flags)
             => _source.OnCompleted(continuation, state, token, flags);
 
+        private object SyncLock
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => this;
+        }
+
         public bool TrySetException(Exception error, short token)
         {
-            if (token == _source.Version)
+            lock (SyncLock)
             {
-                try { _source.SetException(error); } catch (InvalidOperationException) { return false; }
-                return true;
+                if (token == _source.Version)
+                {
+
+                    switch (_source.GetStatus(token))
+                    {
+                        case ValueTaskSourceStatus.Pending:
+                            _source.SetException(error);
+                            Monitor.Pulse(SyncLock);
+                            return true;
+                    }
+                }
             }
             return false;
         }
 
         public bool TrySetResult(short token)
         {
-            if (token == _source.Version)
+            lock (SyncLock)
             {
-                try { _source.SetResult(true); } catch (InvalidOperationException) { return false; }
-                return true;
+                if (token == _source.Version)
+                {
+                    switch (_source.GetStatus(token))
+                    {
+                        case ValueTaskSourceStatus.Pending:
+                            _source.SetResult(true);
+                            Monitor.Pulse(SyncLock);
+                            return true;
+                    }
+                }
             }
             return false;
         }
