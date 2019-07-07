@@ -122,7 +122,6 @@ namespace Benchmark
             }
         }
 
-        // this should work, but it doesn't, because https://github.com/dotnet/BenchmarkDotNet/issues/1193
         [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(PooledValueTask))]
         [BenchmarkCategory("void")]
         public ValueTask ViaPooledValueTask()
