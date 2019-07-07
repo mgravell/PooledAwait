@@ -14,7 +14,7 @@ namespace PooledAwait.Internal
         private StateMachineBox()
         {
             _stateMachine = default!;
-            AllocCounters.IncrSetStateMachine();
+            AllocCounters.StateMachineBoxAllocated.Increment();
         }
 
         private static StateMachineBox<TStateMachine> Create(TStateMachine stateMachine)
@@ -84,6 +84,7 @@ namespace PooledAwait.Internal
             // recycle the instance
             _stateMachine = default!;
             Pool<StateMachineBox<TStateMachine>>.TryPut(this);
+            AllocCounters.StateMachineBoxRecycled.Increment();
 
             // progress the state machine
             tmp.MoveNext();

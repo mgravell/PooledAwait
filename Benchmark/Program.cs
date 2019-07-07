@@ -2,6 +2,8 @@
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 using PooledAwait;
+using PooledAwait.Internal;
+using System;
 using System.Threading.Tasks;
 
 namespace Benchmark
@@ -14,10 +16,13 @@ namespace Benchmark
             var obj = new Awaitable();
 
             for (int i = 0; i < 100; i++)
-                await obj.ViaTaskLike();
-            //Console.WriteLine(AllocCounters.StateBox); // 2
-            //Console.WriteLine(AllocCounters.TaskSource); // 2
-            //Console.WriteLine(AllocCounters.SetStateMachine); // 0
+                await obj.ViaPooledValueTask();
+
+            Console.WriteLine(AllocCounters.PooledStateAllocated); // 2
+            Console.WriteLine(AllocCounters.PooledStateRecycled); // 100100
+            Console.WriteLine(AllocCounters.StateMachineBoxAllocated); // 2
+            Console.WriteLine(AllocCounters.StateMachineBoxRecycled); // 299979
+            Console.WriteLine(AllocCounters.SetStateMachine); // 0
         }
 #else
         static void Main() => BenchmarkRunner.Run<Awaitable>();

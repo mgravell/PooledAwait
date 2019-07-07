@@ -14,7 +14,7 @@ namespace PooledAwait.Internal
             return obj;
         }
 
-        private PooledState() => AllocCounters.IncrTaskSource();
+        private PooledState() => AllocCounters.PooledStateAllocated.Increment();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool IsValid(short token) => _source.Version == token;
@@ -40,6 +40,7 @@ namespace PooledAwait.Internal
             {
                 _source.Reset();
                 Pool<PooledState>.TryPut(this);
+                AllocCounters.PooledStateRecycled.Increment();
             }
         }
 

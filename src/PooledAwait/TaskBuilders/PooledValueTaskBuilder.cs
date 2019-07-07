@@ -13,7 +13,7 @@ namespace PooledAwait.TaskBuilders
         public static PooledValueTaskBuilder Create() => default;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetStateMachine(IAsyncStateMachine _) => AllocCounters.IncrSetStateMachine();
+        public void SetStateMachine(IAsyncStateMachine _) => AllocCounters.SetStateMachine.Increment();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetResult()
