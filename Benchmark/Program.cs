@@ -106,7 +106,7 @@ namespace Benchmark
         {
             return Impl(); // thunks the type back to ValueTaskT
 
-            async PooledValueTask<int> Impl()
+            static async PooledValueTask<int> Impl()
             {
                 int sum = 0;
                 for (int i = 0; i < InnerOps; i++)
@@ -135,7 +135,7 @@ namespace Benchmark
         {
             return Impl(); // thunks the type back to ValueTaskT
 
-            async PooledValueTask Impl()
+            static async PooledValueTask Impl()
             {
                 for (int i = 0; i < InnerOps; i++)
                     await Inner().ConfigureAwait(false);
@@ -158,7 +158,7 @@ namespace Benchmark
         {
             return Impl(); // thunks the type back to ValueTaskT
 
-            async PooledTask Impl()
+            static async PooledTask Impl()
             {
                 for (int i = 0; i < InnerOps; i++)
                     await Inner().ConfigureAwait(false);
@@ -176,7 +176,7 @@ namespace Benchmark
         {
             return Impl(); // thunks the type back to ValueTaskT
 
-            async PooledTask<int> Impl()
+            static async PooledTask<int> Impl()
             {
                 int sum = 0;
                 for (int i = 0; i < InnerOps; i++)

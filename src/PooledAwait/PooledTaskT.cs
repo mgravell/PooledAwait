@@ -4,7 +4,9 @@ using System.Threading.Tasks;
 
 namespace PooledAwait
 {
-    // this only exists to provide access to a custom builder
+    /// <summary>
+    /// A Task<typeparamref name="T"/>, but with a custom builder
+    /// </summary>
     [AsyncMethodBuilder(typeof(TaskBuilders.PooledTaskBuilder<>))]
     public readonly struct PooledTask<T>
     {
@@ -15,20 +17,36 @@ namespace PooledAwait
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal PooledTask(Exception exception) => _taskOrSource = Task.FromException(exception);
 
+        /// <summary>
+        /// Gets the instance as a task
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Task<T> AsTask()
         {
             if (_taskOrSource is TaskCompletionSource<T> source) return source.Task;
-            return (Task<T>)_taskOrSource;
+            if (_taskOrSource is Task<T> task) return task;
+            Throw();
+            return default!;
+
+            static void Throw() => throw new InvalidOperationException();
         }
 
+        /// <summary>
+        /// Gets the instance as a task
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
         public static implicit operator Task<T>(in PooledTask<T> task) => task.AsTask();
 
+        /// <summary>
+        /// Gets the awaiter for the task
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TaskAwaiter<T> GetAwaiter() => AsTask().GetAwaiter();
 
+        /// <summary>
+        /// Gets the configured awaiter for the task
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ConfiguredTaskAwaitable<T> ConfigureAwait(bool continueOnCapturedContext)
             => AsTask().ConfigureAwait(continueOnCapturedContext);

@@ -4,7 +4,9 @@ using System.Threading.Tasks;
 
 namespace PooledAwait
 {
-    // this only exists to provide access to a custom builder
+    /// <summary>
+    /// A Task, but with a custom builder
+    /// </summary>
     [AsyncMethodBuilder(typeof(TaskBuilders.PooledTaskBuilder))]
     public readonly struct PooledTask
     {
@@ -15,6 +17,9 @@ namespace PooledAwait
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal PooledTask(Exception exception) => _taskOrSource = Task.FromException(exception);
 
+        /// <summary>
+        /// Gets the instance as a task
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Task AsTask()
         {
@@ -22,13 +27,23 @@ namespace PooledAwait
             if (_taskOrSource is TaskCompletionSource<bool> source) return source.Task;
             return (Task)_taskOrSource;
         }
+
+        /// <summary>
+        /// Gets the instance as a task
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
         public static implicit operator Task(in PooledTask task) => task.AsTask();
 
+        /// <summary>
+        /// Gets the awaiter for the task
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TaskAwaiter GetAwaiter() => AsTask().GetAwaiter();
 
+        /// <summary>
+        /// Gets the configured awaiter for the task
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ConfiguredTaskAwaitable ConfigureAwait(bool continueOnCapturedContext)
             => AsTask().ConfigureAwait(continueOnCapturedContext);

@@ -3,13 +3,20 @@ using System.Threading;
 
 namespace PooledAwait
 {
+    /// <summary>
+    /// A general-purpose pool of object references; it is the caller's responsibility
+    /// to ensure that overlapped usage does not occur
+    /// </summary>
     public static class Pool<T> where T : class
     {
         [ThreadStatic]
         private static T? ts_local;
 
-        private static readonly T?[] s_global = new T[8];
+        private static readonly T?[] s_global = new T[16];
 
+        /// <summary>
+        /// Gets an instance from the pool if possible
+        /// </summary>
         public static T? TryGet()
         {
             var tmp = ts_local;
@@ -27,6 +34,10 @@ namespace PooledAwait
                 return null;
             }
         }
+
+        /// <summary>
+        /// Puts an instance back into the pool
+        /// </summary>
         public static void TryPut(T value)
         {
             if (value != null)

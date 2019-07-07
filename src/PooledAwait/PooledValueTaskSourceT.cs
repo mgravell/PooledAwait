@@ -8,21 +8,21 @@ namespace PooledAwait
     /// <summary>
     /// A task-source that automatically recycles when the task is awaited
     /// </summary>
-    public readonly struct PooledValueTaskSource
+    public readonly struct PooledValueTaskSource<T>
     {
         /// <summary>
         /// Rents a task-source that will be recycled when the task is awaited
         /// </summary>
-        public static PooledValueTaskSource Create()
+        public static PooledValueTaskSource<T> Create()
         {
-            var source = PooledState.Create(out var token);
-            return new PooledValueTaskSource(source, token);
+            var source = PooledState<T>.Create(out var token);
+            return new PooledValueTaskSource<T>(source, token);
         }
 
-        private readonly PooledState? _source;
+        private readonly PooledState<T>? _source;
         private readonly short _token;
 
-        internal PooledValueTaskSource(PooledState source, short token)
+        internal PooledValueTaskSource(PooledState<T> source, short token)
         {
             _source = source;
             _token = token;
@@ -36,7 +36,7 @@ namespace PooledAwait
         /// <summary>
         /// Set the result of the operation
         /// </summary>
-        public bool TrySetResult() => _source != null && _source.TrySetResult(_token);
+        public bool TrySetResult(T result) => _source != null && _source.TrySetResult(result, _token);
 
         /// <summary>
         /// Set the result of the operation

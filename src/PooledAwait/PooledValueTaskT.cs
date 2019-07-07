@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 
 namespace PooledAwait
 {
+    /// <summary>
+    /// A ValueTask<typeparamref name="T"/> with a custom source and builder
+    /// </summary>
     [AsyncMethodBuilder(typeof(TaskBuilders.PooledValueTaskBuilder<>))]
     public readonly struct PooledValueTask<T>
     {
@@ -19,6 +22,9 @@ namespace PooledAwait
             _result = default!;
         }
 
+        /// <summary>
+        /// Creates a value-task with a fixed value
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public PooledValueTask(T result)
         {
@@ -26,16 +32,28 @@ namespace PooledAwait
             _token = default;
             _result = result;
         }
-        
+
+        /// <summary>
+        /// Gets the instance as a value-task
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ValueTask<T> AsValueTask() => _source == null ? new ValueTask<T>(_result) : new ValueTask<T>(_source, _token);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
+        /// <summary>
+        /// Gets the instance as a value-task
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator ValueTask<T>(in PooledValueTask<T> task) => task.AsValueTask();
 
+        /// <summary>
+        /// Gets the awaiter for the task
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ValueTaskAwaiter<T> GetAwaiter() => AsValueTask().GetAwaiter();
 
+        /// <summary>
+        /// Gets the configured awaiter for the task
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ConfiguredValueTaskAwaitable<T> ConfigureAwait(bool continueOnCapturedContext)
             => AsValueTask().ConfigureAwait(continueOnCapturedContext);
