@@ -12,7 +12,7 @@ Exploration of custom awaitables; typical results:
 | PooledValueTask |     † void |    10.496 ns |  11.156 ns |  0.6115 ns | 0.0001 | 0.0000 |     - |         - |
 |      PooledTask |       void | 2,299.826 ns | 121.711 ns |  6.6714 ns | 0.0273 |      - |     - |      96 B |
 
-(I'm not sure that I trust the benchmarks marked `**`)
+(I'm not sure that I trust the benchmarks marked †)
 
 The 3 tests do the exact same thing; the only thing that changes is the return type, i.e. whether it is `async Task<int>`, `async ValueTask<int>`, `async PooledTask<int>` or `async PooledValueTask<int>`.
 
