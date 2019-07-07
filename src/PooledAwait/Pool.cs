@@ -7,7 +7,8 @@
     public static class Pool
     {
         /// <summary>
-        /// Wraps a value-type into a boxed instance, using an object pool
+        /// Wraps a value-type into a boxed instance, using an object pool;
+        /// consider using value-tuples in particular
         /// </summary>
         public static object Box<T>(in T value) where T : struct
         {
