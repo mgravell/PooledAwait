@@ -25,5 +25,25 @@ namespace PooledAwait.Test
             Assert.False(source.TrySetResult(43));
             Assert.Throws<InvalidOperationException>(() => _ = task.Result);
         }
+
+        [Fact]
+        public async ValueTask CreateAndSetAsync()
+        {
+            var source = PooledValueTaskSource<int>.Create();
+            var task = source.Task;
+
+            Assert.False(task.IsCompleted);
+            Assert.True(source.IsValid);
+
+            Assert.True(source.TrySetResult(42));
+
+            Assert.True(task.IsCompleted);
+            Assert.Equal(42, await task);
+
+            // now it has been fetched, it should have been reset/recycled
+            Assert.False(source.IsValid);
+            Assert.False(source.TrySetResult(43));
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => _ = await task);
+        }
     }
 }
