@@ -99,9 +99,8 @@ namespace Benchmark
             }
         }
 
-        // this should work, but it doesn't, because https://github.com/dotnet/BenchmarkDotNet/issues/1193
-        // [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(PooledValueTask))]
-        // [BenchmarkCategory("int")]
+        [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(PooledValueTask))]
+        [BenchmarkCategory("int")]
         public ValueTask<int> ViaPooledValueTaskT()
         {
             return Impl(); // thunks the type back to ValueTaskT
@@ -123,14 +122,9 @@ namespace Benchmark
             }
         }
 
-        // workaround is to add an "await"
-        [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(PooledValueTask))]
-        [BenchmarkCategory("int")]
-        public async ValueTask<int> ViaPooledValueTaskTAwaited() => await ViaPooledValueTaskT();
-
         // this should work, but it doesn't, because https://github.com/dotnet/BenchmarkDotNet/issues/1193
-        // [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(PooledValueTask))]
-        // [BenchmarkCategory("void")]
+        [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(PooledValueTask))]
+        [BenchmarkCategory("void")]
         public ValueTask ViaPooledValueTask()
         {
             return Impl(); // thunks the type back to ValueTaskT
@@ -146,11 +140,6 @@ namespace Benchmark
                 }
             }
         }
-
-        // workaround is to add an "await"
-        [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(PooledValueTask))]
-        [BenchmarkCategory("void")]
-        public async ValueTask ViaPooledValueTaskAwaited() => await ViaPooledValueTask();
 
         [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(PooledTask))]
         [BenchmarkCategory("void")]
