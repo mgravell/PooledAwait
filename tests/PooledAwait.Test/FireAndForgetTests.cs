@@ -16,7 +16,7 @@ namespace PooledAwait.Test
         public async Task AsValueTask()
         {
             var list = new List<string>();
-            var allDone = PooledValueTaskSource.Create();
+            var allDone = PooledValueTask.CreateSource();
 
             LockedAdd(list, "a");
             await TestAsync();
@@ -42,7 +42,7 @@ namespace PooledAwait.Test
         public async Task AsFireAndForget()
         {
             var list = new List<string>();
-            var allDone = PooledValueTaskSource.Create();
+            var allDone = PooledValueTask.CreateSource();
 
             LockedAdd(list, "a");
             await TestAsync();

@@ -1,4 +1,5 @@
 ﻿using PooledAwait.Internal;
+using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -49,5 +50,11 @@ namespace PooledAwait
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ConfiguredValueTaskAwaitable ConfigureAwait(bool continueOnCapturedContext)
             => AsValueTask().ConfigureAwait(continueOnCapturedContext);
+
+        /// <summary>
+        /// Rents a task-source that will be recycled when the task is awaited
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static PooledValueTaskSource CreateSource() => PooledValueTaskSource.Create();
     }
 }

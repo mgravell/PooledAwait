@@ -57,5 +57,11 @@ namespace PooledAwait
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ConfiguredValueTaskAwaitable<T> ConfigureAwait(bool continueOnCapturedContext)
             => AsValueTask().ConfigureAwait(continueOnCapturedContext);
+
+        /// <summary>
+        /// Rents a task-source that will be recycled when the task is awaited
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static PooledValueTaskSource<T> CreateSource() => PooledValueTaskSource<T>.Create();
     }
 }
