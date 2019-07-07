@@ -8,8 +8,8 @@ Exploration of custom awaitables; typical results:
 |      PooledTask |        int | 2,314.172 ns |  98.018 ns |  5.3727 ns | 0.0273 |      - |     - |      96 B |
 |                 |            |              |            |            |        |        |       |           |
 |            Task |       void | 2,056.287 ns |  87.165 ns |  4.7778 ns | 0.0352 |      - |     - |     112 B |
-|       ValueTask |       void |     3.865 ns |   9.092 ns |  0.4984 ns | 0.0001 | 0.0000 |     - |       1 B | **
-| PooledValueTask |       void |    10.496 ns |  11.156 ns |  0.6115 ns | 0.0001 | 0.0000 |     - |         - | **
+|       ValueTask |     † void |     3.865 ns |   9.092 ns |  0.4984 ns | 0.0001 | 0.0000 |     - |       1 B |
+| PooledValueTask |     † void |    10.496 ns |  11.156 ns |  0.6115 ns | 0.0001 | 0.0000 |     - |         - |
 |      PooledTask |       void | 2,299.826 ns | 121.711 ns |  6.6714 ns | 0.0273 |      - |     - |      96 B |
 
 (I'm not sure that I trust the benchmarks marked `**`)
