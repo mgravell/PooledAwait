@@ -18,11 +18,11 @@ namespace Benchmark
             for (int i = 0; i < 100; i++)
                 await obj.ViaPooledValueTask();
 
-            Console.WriteLine(AllocCounters.PooledStateAllocated); // 2
-            Console.WriteLine(AllocCounters.PooledStateRecycled); // 100100
-            Console.WriteLine(AllocCounters.StateMachineBoxAllocated); // 2
-            Console.WriteLine(AllocCounters.StateMachineBoxRecycled); // 299979
-            Console.WriteLine(AllocCounters.SetStateMachine); // 0
+            Console.WriteLine(nameof(AllocCounters.PooledStateAllocated) + ": " + AllocCounters.PooledStateAllocated); // 2
+            Console.WriteLine(nameof(AllocCounters.PooledStateRecycled) + ": " + AllocCounters.PooledStateRecycled); // 100100
+            Console.WriteLine(nameof(AllocCounters.StateMachineBoxAllocated) + ": " + AllocCounters.StateMachineBoxAllocated); // 2
+            Console.WriteLine(nameof(AllocCounters.StateMachineBoxRecycled) + ": " + AllocCounters.StateMachineBoxRecycled); // 299979
+            Console.WriteLine(nameof(AllocCounters.SetStateMachine) + ": " + AllocCounters.SetStateMachine); // 0
         }
 #else
         static void Main() => BenchmarkRunner.Run<Awaitable>();
