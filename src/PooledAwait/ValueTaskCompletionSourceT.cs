@@ -27,7 +27,7 @@ namespace PooledAwait
         public Task<T> Task
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _state is Task<T> t ? t : ((TaskCompletionSource<T>)_state).Task;
+            get => _state as Task<T> ?? ((TaskCompletionSource<T>)_state).Task;
         }
 
         /// <summary>
