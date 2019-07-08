@@ -4,6 +4,7 @@ using Xunit;
 
 namespace PooledAwait.Test
 {
+    [Collection("Sequential")]
     public class PooledValueTaskSourceTests
     {
         [Fact]
@@ -27,7 +28,7 @@ namespace PooledAwait.Test
         }
 
         [Fact]
-        public async ValueTask CreateAndSetAsync()
+        public async Task CreateAndSetAsync()
         {
             var source = PooledValueTaskSource<int>.Create();
             var task = source.Task;
@@ -44,6 +45,20 @@ namespace PooledAwait.Test
             Assert.False(source.IsValid);
             Assert.False(source.TrySetResult(43));
             await Assert.ThrowsAsync<InvalidOperationException>(async () => _ = await task);
+        }
+
+        [Fact]
+        public void ReadSync()
+        {
+            var source = PooledValueTaskSource<int>.Create();
+            _ = Delayed();
+            Assert.Equal(42, source.Task.Result);
+
+            async FireAndForget Delayed()
+            {
+                await Task.Delay(100);
+                source.TrySetResult(42);
+            }
         }
     }
 }

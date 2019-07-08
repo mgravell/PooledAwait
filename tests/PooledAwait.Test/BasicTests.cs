@@ -4,6 +4,7 @@ using Xunit;
 
 namespace PooledAwait.Test
 {
+    [Collection("Sequential")]
     public class BasicTests
     {
         [Theory]
@@ -26,72 +27,101 @@ namespace PooledAwait.Test
             }
         }
 
-        [Fact]
-        public async Task ZeroAllocTaskAsync()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task ZeroAllocTaskAsync(bool isAsync)
         {
-            await Impl();
+            Task pending = Impl();
+            Assert.Equal(!isAsync, pending.IsCompleted);
+            await pending;
             Counters.Reset();
             await Impl();
-            Assert.Equal(0, Counters.TotalAllocations);
+            Assert.Equal(isAsync ? 1 : 0, Counters.TaskAllocated.Value);
+            Assert.Equal(isAsync ? 1 : 0, Counters.TotalAllocations);
             Assert.Equal(0, Counters.PooledStateRecycled.Value);
-            Assert.Equal(2, Counters.StateMachineBoxRecycled.Value);
+            Assert.Equal(isAsync ? 2 : 0, Counters.StateMachineBoxRecycled.Value);
 
             async PooledTask Impl()
             {
-                await Task.Yield();
-                await Task.Yield();
+                if (isAsync)
+                {
+                    await Task.Yield();
+                    await Task.Yield();
+                }
             }
         }
 
-        [Fact]
-        public async Task ZeroAllocValueTaskAsync()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task ZeroAllocValueTaskAsync(bool isAsync)
         {
-            await Impl();
+            ValueTask pending = Impl();
+            Assert.Equal(!isAsync, pending.IsCompleted);
+            await pending;
             Counters.Reset();
             await Impl();
             Assert.Equal(0, Counters.TotalAllocations);
-            Assert.Equal(1, Counters.PooledStateRecycled.Value);
-            Assert.Equal(2, Counters.StateMachineBoxRecycled.Value);
+            Assert.Equal(isAsync ? 1 : 0, Counters.PooledStateRecycled.Value);
+            Assert.Equal(isAsync ? 2 : 0, Counters.StateMachineBoxRecycled.Value);
 
             async PooledValueTask Impl()
             {
-                await Task.Yield();
-                await Task.Yield();
+                if (isAsync)
+                {
+                    await Task.Yield();
+                    await Task.Yield();
+                }
             }
         }
 
-        [Fact]
-        public async Task ZeroAllocTaskTAsync()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task ZeroAllocTaskTAsync(bool isAsync)
         {
-            Assert.Equal(42, await Impl());
+            Task<int> pending = Impl();
+            Assert.Equal(!isAsync, pending.IsCompleted);
+            await pending;
             Counters.Reset();
             Assert.Equal(42, await Impl());
             Assert.Equal(0, Counters.TotalAllocations);
             Assert.Equal(0, Counters.PooledStateRecycled.Value);
-            Assert.Equal(2, Counters.StateMachineBoxRecycled.Value);
+            Assert.Equal(isAsync ? 2 : 0, Counters.StateMachineBoxRecycled.Value);
 
             async PooledTask<int> Impl()
             {
-                await Task.Yield();
-                await Task.Yield();
+                if (isAsync)
+                {
+                    await Task.Yield();
+                    await Task.Yield();
+                }
                 return 42;
             }
         }
 
-        [Fact]
-        public async Task ZeroAllocValueTaskTAsync()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task ZeroAllocValueTaskTAsync(bool isAsync)
         {
-            Assert.Equal(42, await Impl());
+            ValueTask<int> pending = Impl();
+            Assert.Equal(!isAsync, pending.IsCompleted);
+            await pending;
             Counters.Reset();
             Assert.Equal(42, await Impl());
             Assert.Equal(0, Counters.TotalAllocations);
-            Assert.Equal(1, Counters.PooledStateRecycled.Value);
-            Assert.Equal(2, Counters.StateMachineBoxRecycled.Value);
+            Assert.Equal(isAsync ? 1 : 0, Counters.PooledStateRecycled.Value);
+            Assert.Equal(isAsync ? 2 : 0, Counters.StateMachineBoxRecycled.Value);
 
             async PooledValueTask<int> Impl()
             {
-                await Task.Yield();
-                await Task.Yield();
+                if (isAsync)
+                {
+                    await Task.Yield();
+                    await Task.Yield();
+                }
                 return 42;
             }
         }

@@ -25,10 +25,12 @@ namespace PooledAwait.Internal
             PooledStateRecycled,
             StateMachineBoxAllocated,
             StateMachineBoxRecycled,
-            ItemBoxAllocated;
+            ItemBoxAllocated,
+            TaskAllocated;
 
         public static long TotalAllocations =>
-            PooledStateAllocated.Value + StateMachineBoxAllocated.Value + ItemBoxAllocated.Value;
+            PooledStateAllocated.Value + StateMachineBoxAllocated.Value
+            + ItemBoxAllocated.Value + TaskAllocated.Value;
 
         internal static void Reset()
         {
@@ -38,6 +40,7 @@ namespace PooledAwait.Internal
             StateMachineBoxAllocated.Reset();
             StateMachineBoxRecycled.Reset();
             ItemBoxAllocated.Reset();
+            TaskAllocated.Reset();
         }
 
 

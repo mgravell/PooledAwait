@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
 namespace PooledAwait.Test
 {
+    [Collection("Sequential")]
     public class FireAndForgetTests
     {
         static void LockedAdd<T>(List<T> list, T value)

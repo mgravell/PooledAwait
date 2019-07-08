@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using PooledAwait.Internal;
 
 #if !NETSTANDARD1_3
 using System.Reflection;
@@ -43,6 +44,8 @@ namespace PooledAwait
             get => _state != null;
         }
 
+        internal bool IsOptimized => _state is Task<T>;
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void SpinUntilCompleted(Task<T> task)
         {
@@ -64,12 +67,20 @@ namespace PooledAwait
 
 #if !NETSTANDARD1_3
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static ValueTaskCompletionSource<T> CreateOptimized() => new ValueTaskCompletionSource<T>(
-            System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(Task<T>)));
+        internal static ValueTaskCompletionSource<T> CreateOptimized()
+        {
+            Counters.TaskAllocated.Increment();
+            return new ValueTaskCompletionSource<T>(
+                System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(Task<T>)));
+        }
 #endif
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static ValueTaskCompletionSource<T> CreateFallback() => new ValueTaskCompletionSource<T>(new TaskCompletionSource<T>());
+        internal static ValueTaskCompletionSource<T> CreateFallback()
+        {
+            Counters.TaskAllocated.Increment();
+            return new ValueTaskCompletionSource<T>(new TaskCompletionSource<T>());
+        }
 
         /// <summary>
         /// Set the outcome of the operation
