@@ -30,29 +30,21 @@ namespace PooledAwait.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         T IValueTaskSource<T>.GetResult(short token)
         {
-            // we only support getting the result once; doing this recycles
-            // the source and advances the token
-            try
-            {
-                if (_source.GetStatus(token) == ValueTaskSourceStatus.Pending) WaitForResult(token);
-                return _source.GetResult(token);
-            }
-            finally
-            {
-                _source.Reset();
-                Pool<PooledState<T>>.TryPut(this);
-                Counters.PooledStateRecycled.Increment();
-            }
-        }
+            // we only support getting the result once; doing this recycles the source and advances the token
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private void WaitForResult(short token)
-        {
-            lock (SyncLock)
+            lock (SyncLock) // we need to be really paranoid about cross-threading over changing the token
             {
-                if (token == _source.Version && _source.GetStatus(token) == ValueTaskSourceStatus.Pending)
+                var status = _source.GetStatus(token); // do this *outside* the try/finally
+                try // so that we don't increment the counter if someone asks for the wrong value
                 {
-                    Monitor.Wait(SyncLock);
+                    if (status == ValueTaskSourceStatus.Pending) Monitor.Wait(SyncLock);
+                    return _source.GetResult(token);
+                }
+                finally
+                {
+                    _source.Reset();
+                    Pool<PooledState<T>>.TryPut(this);
+                    Counters.PooledStateRecycled.Increment();
                 }
             }
         }
