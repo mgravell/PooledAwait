@@ -1,16 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.0;netstandard2.1;netstandard2.0;net45;net46;netstandard1.3</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.0;netstandard2.1;netstandard2.0;net45;net461;netstandard1.3</TargetFrameworks>
     <SignAssembly>true</SignAssembly>
     <IncludeTaskExtensions>true</IncludeTaskExtensions>
+    <IncludeAsyncInterfaces>false</IncludeAsyncInterfaces>
     <PackageId>PooledAwait</PackageId>
+    <GeneratePackageOnBuild Condition="$(Configuration)=='Release'">true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <PropertyGroup Condition="$(TargetFramework)=='netstandard2.1'">
     <DefineConstants>$(DefineConstants);PLAT_MRVTSC</DefineConstants>
   </PropertyGroup>
-  
+
+  <PropertyGroup Condition="$(TargetFramework)=='netstandard2.0'">
+    <DefineConstants>$(DefineConstants);PLAT_MRVTSC</DefineConstants>
+    <IncludeAsyncInterfaces>true</IncludeAsyncInterfaces>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$(TargetFramework)=='net461'">
+    <DefineConstants>$(DefineConstants);PLAT_MRVTSC</DefineConstants>
+    <IncludeAsyncInterfaces>true</IncludeAsyncInterfaces>
+  </PropertyGroup>
+
   <PropertyGroup Condition="$(TargetFramework)=='netcoreapp3.0'">
     <DefineConstants>$(DefineConstants);PLAT_THREADPOOLWORKITEM;PLAT_MRVTSC</DefineConstants>
     <IncludeTaskExtensions>false</IncludeTaskExtensions>
@@ -20,8 +32,9 @@
     <PackageReference Include="System.Threading.ThreadPool" Version="4.3.0" />
   </ItemGroup>
 
-  <ItemGroup Condition="$(IncludeTaskExtensions)=='true'">
-    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.2" />
+  <ItemGroup>
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.2" Condition="$(IncludeTaskExtensions)=='true'" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.0.0-preview6.19303.8" Condition="$(IncludeAsyncInterfaces)=='true'" />
   </ItemGroup>
 
 </Project>
