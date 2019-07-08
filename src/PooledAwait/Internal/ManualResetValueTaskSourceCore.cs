@@ -190,7 +190,7 @@ namespace PooledAwait.Internal
                         }
                         else
                         {
-#if NETSTANDARD1_5
+#if NETSTANDARD1_3
                             ThreadPool.QueueUserWorkItem(
 #else
                             ThreadPool.UnsafeQueueUserWorkItem(
@@ -271,7 +271,7 @@ namespace PooledAwait.Internal
                         }
                         else
                         {
-#if NETSTANDARD1_5
+#if NETSTANDARD1_3
                             ThreadPool.QueueUserWorkItem(
 #else
                             ThreadPool.UnsafeQueueUserWorkItem(

@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-#if !NETSTANDARD1_5
+#if !NETSTANDARD1_3
 using System.Reflection;
 #endif
 
@@ -15,7 +15,7 @@ namespace PooledAwait
     /// <remarks>When possible, this will bypass TaskCompletionSource<typeparamref name="T"/> completely</remarks>
     public readonly struct ValueTaskCompletionSource<T>
     {
-#if !NETSTANDARD1_5
+#if !NETSTANDARD1_3
         private static readonly Func<Task<T>, Exception, bool>? s_TrySetException = TryCreate<Exception>(nameof(TrySetException));
         private static readonly Func<Task<T>, T, bool>? s_TrySetResult = TryCreate<T>(nameof(TrySetResult));
         private static readonly bool s_Optimized = ValidateOptimized();
@@ -57,12 +57,12 @@ namespace PooledAwait
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ValueTaskCompletionSource<T> Create() =>
-#if !NETSTANDARD1_5
+#if !NETSTANDARD1_3
             s_Optimized ? CreateOptimized() :
 #endif
             CreateFallback();
 
-#if !NETSTANDARD1_5
+#if !NETSTANDARD1_3
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static ValueTaskCompletionSource<T> CreateOptimized() => new ValueTaskCompletionSource<T>(
             System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(Task<T>)));
@@ -77,7 +77,7 @@ namespace PooledAwait
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TrySetException(Exception exception)
         {
-#if !NETSTANDARD1_5
+#if !NETSTANDARD1_3
             if (_state is Task<T> task)
             {
                 var result = s_TrySetException!(task, exception);
@@ -94,7 +94,7 @@ namespace PooledAwait
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TrySetResult(T value)
         {
-#if !NETSTANDARD1_5
+#if !NETSTANDARD1_3
             if (_state is Task<T> task)
             {
                 var result = s_TrySetResult!(task, value);
@@ -105,7 +105,7 @@ namespace PooledAwait
             return ((TaskCompletionSource<T>)_state).TrySetResult(value);
         }
 
-#if !NETSTANDARD1_5
+#if !NETSTANDARD1_3
         private static Func<Task<T>, TArg, bool>? TryCreate<TArg>(string methodName)
         {
             try
