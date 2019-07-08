@@ -3,7 +3,7 @@ using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-
+using SystemTask = System.Threading.Tasks.Task;
 #pragma warning disable CS1591
 
 namespace PooledAwait.TaskBuilders
@@ -15,7 +15,7 @@ namespace PooledAwait.TaskBuilders
     [EditorBrowsable(EditorBrowsableState.Never)]
     public struct PooledTaskBuilder<T>
     {
-        private object? _factoryState;
+        private ValueTaskCompletionSource<T> _source;
         private Exception _exception;
         private T _result;
 
@@ -34,7 +34,7 @@ namespace PooledAwait.TaskBuilders
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetResult(T result)
         {
-            if (_factoryState != null) PendingTaskFactory<T>.TrySetResult(_factoryState, result);
+            if (_source.HasTask) _source.TrySetResult(result);
             _result = result;
         }
 
@@ -43,14 +43,9 @@ namespace PooledAwait.TaskBuilders
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetException(Exception exception)
         {
-            PendingTaskFactory<T>.TrySetException(EnsureState(), exception);
+            if (_source.HasTask) _source.TrySetException(exception);
             _exception = exception;
         }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private object EnsureState() => _factoryState ?? CreateState();
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private object CreateState() => _factoryState ?? (_factoryState = PendingTaskFactory<T>.Create());
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -59,10 +54,18 @@ namespace PooledAwait.TaskBuilders
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                if (_factoryState != null) return new PooledTask<T>(_factoryState);
-                if (_exception != null) return new PooledTask<T>(_exception);
-                return new PooledTask<T>(_result);
+                Task<T> task;
+                if (_source.HasTask) task = _source.Task;
+                else if (_exception != null) task = SystemTask.FromException<T>(_exception);
+                else task = SystemTask.FromResult<T>(_result);
+                return new PooledTask<T>(task);
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void EnsureHasTask()
+        {
+            if (!_source.HasTask) _source = ValueTaskCompletionSource<T>.Create();
         }
 
         [Browsable(false)]
@@ -73,7 +76,7 @@ namespace PooledAwait.TaskBuilders
             where TAwaiter : INotifyCompletion
             where TStateMachine : IAsyncStateMachine
         {
-            EnsureState();
+            EnsureHasTask();
             StateMachineBox<TStateMachine>.AwaitOnCompleted(ref awaiter, ref stateMachine);
         }
 
@@ -85,7 +88,7 @@ namespace PooledAwait.TaskBuilders
             where TAwaiter : ICriticalNotifyCompletion
             where TStateMachine : IAsyncStateMachine
         {
-            EnsureState();
+            EnsureHasTask();
             StateMachineBox<TStateMachine>.AwaitUnsafeOnCompleted(ref awaiter, ref stateMachine);
         }
 

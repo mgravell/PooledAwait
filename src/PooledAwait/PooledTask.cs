@@ -10,23 +10,16 @@ namespace PooledAwait
     [AsyncMethodBuilder(typeof(TaskBuilders.PooledTaskBuilder))]
     public readonly struct PooledTask
     {
-        private readonly object? _taskOrSource;
+        private readonly Task _task;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal PooledTask(object taskOrSource) => _taskOrSource = taskOrSource;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal PooledTask(Exception exception) => _taskOrSource = Task.FromException(exception);
+        internal PooledTask(Task task) => _task = task;
 
         /// <summary>
         /// Gets the instance as a task
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Task AsTask()
-        {
-            if (_taskOrSource == null) return Task.CompletedTask;
-            if (_taskOrSource is TaskCompletionSource<bool> source) return source.Task;
-            return (Task)_taskOrSource;
-        }
+        public Task AsTask() => _task ?? Task.CompletedTask;
 
         /// <summary>
         /// Gets the instance as a task
