@@ -5,7 +5,7 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
-    <Version>0.1-alpha3</Version>
+    <Version>0.1-alpha4</Version>
     <Authors>mgravell</Authors>
 
 
