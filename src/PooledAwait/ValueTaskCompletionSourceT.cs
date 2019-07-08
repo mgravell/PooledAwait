@@ -106,6 +106,7 @@ namespace PooledAwait
         }
 
 #if !NETSTANDARD1_3
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static Func<Task<T>, TArg, bool>? TryCreate<TArg>(string methodName)
         {
             try
@@ -118,6 +119,7 @@ namespace PooledAwait
             catch { return null; }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static bool ValidateOptimized()
         {
             try

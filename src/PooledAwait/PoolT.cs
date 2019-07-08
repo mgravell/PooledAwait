@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 
 namespace PooledAwait
@@ -17,6 +18,7 @@ namespace PooledAwait
         /// <summary>
         /// Gets an instance from the pool if possible
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T? TryGet()
         {
             var tmp = ts_local;
@@ -38,6 +40,7 @@ namespace PooledAwait
         /// <summary>
         /// Puts an instance back into the pool
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void TryPut(T value)
         {
             if (value != null)

@@ -9,6 +9,7 @@ namespace PooledAwait.Internal
     {
 #if NET45
         public static readonly Task CompletedTask = Task.FromResult(true);
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Task<T> FromException<T>(Exception exception)
         {
@@ -16,12 +17,15 @@ namespace PooledAwait.Internal
             source.TrySetException(exception);
             return source.Task;
         }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Task FromException(Exception exception) => FromException<bool>(exception);
 #else
         public static readonly Task CompletedTask = Task.CompletedTask;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Task<T> FromException<T>(Exception exception) => Task.FromException<T>(exception);
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Task FromException(Exception exception) => Task.FromException(exception);
 #endif

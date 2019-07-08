@@ -7,6 +7,7 @@ namespace PooledAwait.Internal
 {
     internal sealed class PooledState<T> : IValueTaskSource<T>
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static PooledState<T> Create(out short token)
         {
             var obj = Pool<PooledState<T>>.TryGet() ?? new PooledState<T>();
@@ -14,6 +15,7 @@ namespace PooledAwait.Internal
             return obj;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private PooledState() => Counters.PooledStateAllocated.Increment();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -74,6 +76,7 @@ namespace PooledAwait.Internal
             get => this;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TrySetException(Exception error, short token)
         {
             if (token == _source.Version)
@@ -91,6 +94,7 @@ namespace PooledAwait.Internal
             return false;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TrySetResult(T result, short token)
         {
             if (token == _source.Version)
