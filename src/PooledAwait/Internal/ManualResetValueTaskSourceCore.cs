@@ -190,7 +190,12 @@ namespace PooledAwait.Internal
                         }
                         else
                         {
-                            ThreadPool.UnsafeQueueUserWorkItem(WaitCallbackShim.Invoke, WaitCallbackShim.Create(continuation, state));
+#if NETSTANDARD1_5
+                            ThreadPool.QueueUserWorkItem(
+#else
+                            ThreadPool.UnsafeQueueUserWorkItem(
+#endif
+                                WaitCallbackShim.Invoke, WaitCallbackShim.Create(continuation, state));
                         }
                         break;
 
@@ -266,7 +271,12 @@ namespace PooledAwait.Internal
                         }
                         else
                         {
-                            ThreadPool.UnsafeQueueUserWorkItem(WaitCallbackShim.Invoke, WaitCallbackShim.Create(_continuation, _continuationState));
+#if NETSTANDARD1_5
+                            ThreadPool.QueueUserWorkItem(
+#else
+                            ThreadPool.UnsafeQueueUserWorkItem(
+#endif
+                                WaitCallbackShim.Invoke, WaitCallbackShim.Create(_continuation, _continuationState));
                         }
                     }
                     else

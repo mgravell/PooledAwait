@@ -67,6 +67,8 @@ namespace PooledAwait.Internal
                 {
 #if PLAT_THREADPOOLWORKITEM
                     ThreadPool.UnsafeQueueUserWorkItem(box, false);
+#elif NETSTANDARD1_5
+                    ThreadPool.QueueUserWorkItem(s_WaitCallback, box);
 #else
                     ThreadPool.UnsafeQueueUserWorkItem(s_WaitCallback, box);
 #endif
