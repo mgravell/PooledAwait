@@ -53,8 +53,9 @@ need to be allocated (except for `Task.CompletedTask`, which we special-case).
 Based on an operation that uses `Task.Yield()` to ensure that the operations are incomplete. The thing to note is the zero
 allocations for `PooledValueTask<int>` and `PooledValueTask`.
 
+``` txt
 |          Method | Categories | ConfigureAwait |     Mean |     Error |    StdDev |  Gen 0 | Gen 1 | Gen 2 | Allocated |
-|---------------- |----------- |------------------------- |---------:|----------:|----------:|-------:|------:|------:|----------:|
+|---------------- |----------- |--------------- |---------:|----------:|----------:|-------:|------:|------:|----------:|
 |            Task |        int |          False | 1.729 us | 0.2741 us | 0.0150 us | 0.0176 |     - |     - |     120 B |
 |       ValueTask |        int |          False | 1.706 us | 0.1328 us | 0.0073 us | 0.0195 |     - |     - |     128 B |
 | PooledValueTask |        int |          False | 1.608 us | 0.2610 us | 0.0143 us |      - |     - |     - |         - |
@@ -72,6 +73,7 @@ allocations for `PooledValueTask<int>` and `PooledValueTask`.
 |       ValueTask |       void |           True | 1.678 us | 0.0929 us | 0.0051 us | 0.0176 |     - |     - |     120 B |
 | PooledValueTask |       void |           True | 1.666 us | 0.2093 us | 0.0115 us |      - |     - |     - |         - |
 |      PooledTask |       void |           True | 1.620 us | 0.0583 us | 0.0032 us | 0.0098 |     - |     - |      72 B |
+```
 
 The 3 tests do the exact same thing; the only thing that changes is the return type, i.e. whether it is `async Task<int>`, `async ValueTask<int>`, `async PooledTask<int>` or `async PooledValueTask<int>`.
 
