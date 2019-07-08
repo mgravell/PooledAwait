@@ -20,8 +20,8 @@ namespace Benchmark
         // [Params(false, true)]
         public bool ConfigureAwait { get; set; } = false;
 
-        [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(Task))]
-        [BenchmarkCategory("int")]
+        [Benchmark(OperationsPerInvoke = InnerOps, Description = ".NET/T")]
+        [BenchmarkCategory(nameof(Task))]
         public async Task<int> ViaTaskT()
         {
             int sum = 0;
@@ -39,8 +39,8 @@ namespace Benchmark
             }
         }
 
-        [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(Task))]
-        [BenchmarkCategory("void")]
+        [Benchmark(OperationsPerInvoke = InnerOps, Description = ".NET")]
+        [BenchmarkCategory(nameof(Task))]
         public async Task ViaTask()
         {
             for (int i = 0; i < InnerOps; i++)
@@ -53,8 +53,8 @@ namespace Benchmark
             }
         }
 
-        [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(ValueTask))]
-        [BenchmarkCategory("int")]
+        [Benchmark(OperationsPerInvoke = InnerOps, Description = ".NET/T")]
+        [BenchmarkCategory(nameof(ValueTask))]
         public async Task<int> ViaValueTaskT()
         {
             int sum = 0;
@@ -72,8 +72,8 @@ namespace Benchmark
             }
         }
 
-        [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(ValueTask))]
-        [BenchmarkCategory("void")]
+        [Benchmark(OperationsPerInvoke = InnerOps, Description = ".NET")]
+        [BenchmarkCategory(nameof(ValueTask))]
         public async Task ViaValueTask()
         {
             for (int i = 0; i < InnerOps; i++)
@@ -86,8 +86,8 @@ namespace Benchmark
             }
         }
 
-        [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(PooledValueTask))]
-        [BenchmarkCategory("int")]
+        [Benchmark(OperationsPerInvoke = InnerOps, Description = "Pooled/T")]
+        [BenchmarkCategory(nameof(ValueTask))]
         public async Task<int> ViaPooledValueTaskT()
         {
             int sum = 0;
@@ -105,8 +105,8 @@ namespace Benchmark
             }
         }
 
-        [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(PooledValueTask))]
-        [BenchmarkCategory("void")]
+        [Benchmark(OperationsPerInvoke = InnerOps, Description = "Pooled")]
+        [BenchmarkCategory(nameof(ValueTask))]
         public async Task ViaPooledValueTask()
         {
             for (int i = 0; i < InnerOps; i++)
@@ -119,8 +119,8 @@ namespace Benchmark
             }
         }
 
-        [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(PooledTask))]
-        [BenchmarkCategory("int")]
+        [Benchmark(OperationsPerInvoke = InnerOps, Description = "Pooled/T")]
+        [BenchmarkCategory(nameof(Task))]
         public async Task<int> ViaPooledTaskT()
         {
             int sum = 0;
@@ -138,8 +138,8 @@ namespace Benchmark
             }
         }
 
-        [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(PooledTask))]
-        [BenchmarkCategory("void")]
+        [Benchmark(OperationsPerInvoke = InnerOps, Description = "Pooled")]
+        [BenchmarkCategory(nameof(Task))]
         public async Task ViaPooledTask()
         {
             for (int i = 0; i < InnerOps; i++)
