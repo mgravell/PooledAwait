@@ -1,4 +1,6 @@
-﻿namespace PooledAwait
+﻿using PooledAwait.Internal;
+
+namespace PooledAwait
 {
     /// <summary>
     /// Utility methods for boxing value types efficiently, in particular for
@@ -11,28 +13,33 @@
         /// consider using value-tuples in particular
         /// </summary>
         public static object Box<T>(in T value) where T : struct
-        {
-            var obj = Pool<ItemBox<T>>.TryGet() ?? new ItemBox<T>();
-            obj.Value = value;
-            return obj;
-        }
+            => ItemBox<T>.Create(in value);
 
         /// <summary>
         /// Unwraps a value-type from a boxed instance and recycles
         /// the instance, which should not be touched again
         /// </summary>
         public static T UnboxAndRecycle<T>(object obj) where T : struct
-        {
-            var box = (ItemBox<T>)obj;
-            var value = box.Value;
-            box.Value = default;
-            Pool<ItemBox<T>>.TryPut(box);
-            return value;
-        }
+            => ItemBox<T>.UnboxAndRecycle(obj);
 
         private sealed class ItemBox<T> where T : struct
         {
-            public T Value;
+            private ItemBox() => Counters.ItemBoxAllocated.Increment();
+            public static ItemBox<T> Create(in T value)
+            {
+                var box = Pool<ItemBox<T>>.TryGet() ?? new ItemBox<T>();
+                box._value = value;
+                return box;
+            }
+            public static T UnboxAndRecycle(object obj)
+            {
+                var box = (ItemBox<T>)obj;
+                var value = box._value;
+                box._value = default;
+                Pool<ItemBox<T>>.TryPut(box);
+                return value;
+            }
+            private T _value;
         }
     }
 }

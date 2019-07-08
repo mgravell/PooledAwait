@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Threading.Tasks.Sources;
 
 namespace PooledAwait.Internal
@@ -15,7 +14,7 @@ namespace PooledAwait.Internal
             return obj;
         }
 
-        private PooledState() => AllocCounters.PooledStateAllocated.Increment();
+        private PooledState() => Counters.PooledStateAllocated.Increment();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool IsValid(short token) => _source.Version == token;
@@ -42,7 +41,7 @@ namespace PooledAwait.Internal
             {
                 _source.Reset();
                 Pool<PooledState>.TryPut(this);
-                AllocCounters.PooledStateRecycled.Increment();
+                Counters.PooledStateRecycled.Increment();
             }
         }
 

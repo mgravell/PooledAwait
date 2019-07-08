@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using static System.Runtime.CompilerServices.YieldAwaitable;
 
 namespace PooledAwait.Internal
 {
@@ -14,7 +13,7 @@ namespace PooledAwait.Internal
         private StateMachineBox()
         {
             _stateMachine = default!;
-            AllocCounters.StateMachineBoxAllocated.Increment();
+            Counters.StateMachineBoxAllocated.Increment();
         }
 
         private static StateMachineBox<TStateMachine> Create(TStateMachine stateMachine)
@@ -31,7 +30,7 @@ namespace PooledAwait.Internal
             where TAwaiter : INotifyCompletion
         {
             var box = Create(stateMachine);
-            if (typeof(TAwaiter) == typeof(YieldAwaiter))
+            if (typeof(TAwaiter) == typeof(YieldAwaitable.YieldAwaiter))
             {
                 var syncContetx = SynchronizationContext.Current;
                 if (syncContetx == null)
@@ -58,7 +57,7 @@ namespace PooledAwait.Internal
             where TAwaiter : ICriticalNotifyCompletion
         {
             var box = Create(stateMachine);
-            if (typeof(TAwaiter) == typeof(YieldAwaiter))
+            if (typeof(TAwaiter) == typeof(YieldAwaitable.YieldAwaiter))
             {
                 var syncContetx = SynchronizationContext.Current;
                 if (syncContetx == null)
@@ -84,7 +83,7 @@ namespace PooledAwait.Internal
             // recycle the instance
             _stateMachine = default!;
             Pool<StateMachineBox<TStateMachine>>.TryPut(this);
-            AllocCounters.StateMachineBoxRecycled.Increment();
+            Counters.StateMachineBoxRecycled.Increment();
 
             // progress the state machine
             tmp.MoveNext();

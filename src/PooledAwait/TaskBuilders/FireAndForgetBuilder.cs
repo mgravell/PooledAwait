@@ -2,7 +2,6 @@
 using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 
 #pragma warning disable CS1591
 
@@ -24,7 +23,7 @@ namespace PooledAwait.TaskBuilders
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetStateMachine(IAsyncStateMachine _) => AllocCounters.SetStateMachine.Increment();
+        public void SetStateMachine(IAsyncStateMachine _) => Counters.SetStateMachine.Increment();
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]

@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading;
 
 namespace PooledAwait.Internal
 {
-    internal static class AllocCounters
+    internal static class Counters
     {
         internal struct Counter
         {
@@ -18,11 +17,27 @@ namespace PooledAwait.Internal
                 => throw new NotSupportedException();
             public override int GetHashCode()
                 => throw new NotSupportedException();
+            public void Reset() => Interlocked.Exchange(ref _value, 0);
         }
 
-        internal static Counter SetStateMachine,
-            PooledStateAllocated, PooledStateRecycled,
-            StateMachineBoxAllocated, StateMachineBoxRecycled;
+        internal static Counter
+            SetStateMachine,
+            PooledStateAllocated,
+            PooledStateRecycled,
+            StateMachineBoxAllocated,
+            StateMachineBoxRecycled,
+            ItemBoxAllocated;
+
+        internal static void Reset()
+        {
+            SetStateMachine.Reset();
+            PooledStateAllocated.Reset();
+            PooledStateRecycled.Reset();
+            StateMachineBoxAllocated.Reset();
+            StateMachineBoxRecycled.Reset();
+            ItemBoxAllocated.Reset();
+        }
+
 
     }
 }
