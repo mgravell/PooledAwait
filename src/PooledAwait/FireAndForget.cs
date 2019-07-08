@@ -1,4 +1,5 @@
 ﻿using PooledAwait.Internal;
+using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -11,6 +12,17 @@ namespace PooledAwait
     [AsyncMethodBuilder(typeof(TaskBuilders.FireAndForgetBuilder))]
     public readonly struct FireAndForget
     {
+        /// <summary>
+        /// Raised when exceptions occur on fire-and-forget methods
+        /// </summary>
+        public static event Action<Exception> Exception;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void OnException(Exception exception)
+        {
+            if (exception != null) Exception?.Invoke(exception);
+        }
+
         /// <summary>
         /// Gets the instance as a value-task
         /// </summary>

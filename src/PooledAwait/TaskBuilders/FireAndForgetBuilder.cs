@@ -14,7 +14,6 @@ namespace PooledAwait.TaskBuilders
     [EditorBrowsable(EditorBrowsableState.Never)]
     public struct FireAndForgetBuilder
     {
-        public static event Action<Exception> Exception;
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -33,7 +32,7 @@ namespace PooledAwait.TaskBuilders
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetException(Exception exception) => Exception?.Invoke(exception);
+        public void SetException(Exception exception) => FireAndForget.OnException(exception);
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
