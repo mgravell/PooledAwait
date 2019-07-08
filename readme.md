@@ -54,25 +54,17 @@ Based on an operation that uses `Task.Yield()` to ensure that the operations are
 allocations for `PooledValueTask<int>` and `PooledValueTask`.
 
 ``` txt
-|          Method | Categories | ConfigureAwait |     Mean |     Error |    StdDev |  Gen 0 | Gen 1 | Gen 2 | Allocated |
-|---------------- |----------- |--------------- |---------:|----------:|----------:|-------:|------:|------:|----------:|
-|            Task |        int |          False | 1.729 us | 0.2741 us | 0.0150 us | 0.0176 |     - |     - |     120 B |
-|       ValueTask |        int |          False | 1.706 us | 0.1328 us | 0.0073 us | 0.0195 |     - |     - |     128 B |
-| PooledValueTask |        int |          False | 1.608 us | 0.2610 us | 0.0143 us |      - |     - |     - |         - |
-|      PooledTask |        int |          False | 1.618 us | 0.0688 us | 0.0038 us | 0.0098 |     - |     - |      72 B |
-|            Task |        int |           True | 1.725 us | 0.3130 us | 0.0172 us | 0.0176 |     - |     - |     120 B |
-|       ValueTask |        int |           True | 1.689 us | 0.2841 us | 0.0156 us | 0.0195 |     - |     - |     128 B |
-| PooledValueTask |        int |           True | 1.648 us | 0.2475 us | 0.0136 us |      - |     - |     - |         - |
-|      PooledTask |        int |           True | 1.607 us | 0.1426 us | 0.0078 us | 0.0098 |     - |     - |      72 B |
-|                 |            |                |          |           |           |        |       |       |           |
-|            Task |       void |          False | 1.666 us | 0.0237 us | 0.0013 us | 0.0176 |     - |     - |     112 B |
-|       ValueTask |       void |          False | 1.695 us | 0.3073 us | 0.0168 us | 0.0176 |     - |     - |     120 B |
-| PooledValueTask |       void |          False | 1.648 us | 0.1708 us | 0.0094 us |      - |     - |     - |         - |
-|      PooledTask |       void |          False | 1.654 us | 0.2729 us | 0.0150 us | 0.0098 |     - |     - |      72 B |
-|            Task |       void |           True | 1.645 us | 1.7159 us | 0.0941 us | 0.0176 |     - |     - |     112 B |
-|       ValueTask |       void |           True | 1.678 us | 0.0929 us | 0.0051 us | 0.0176 |     - |     - |     120 B |
-| PooledValueTask |       void |           True | 1.666 us | 0.2093 us | 0.0115 us |      - |     - |     - |         - |
-|      PooledTask |       void |           True | 1.620 us | 0.0583 us | 0.0032 us | 0.0098 |     - |     - |      72 B |
+|          Method | Categories |     Mean |     Error |    StdDev |  Gen 0 | Gen 1 | Gen 2 | Allocated |
+|---------------- |----------- |---------:|----------:|----------:|-------:|------:|------:|----------:|
+|            Task |        int | 1.729 us | 0.2741 us | 0.0150 us | 0.0176 |     - |     - |     120 B |
+|       ValueTask |        int | 1.706 us | 0.1328 us | 0.0073 us | 0.0195 |     - |     - |     128 B |
+| PooledValueTask |        int | 1.608 us | 0.2610 us | 0.0143 us |      - |     - |     - |         - |
+|      PooledTask |        int | 1.618 us | 0.0688 us | 0.0038 us | 0.0098 |     - |     - |      72 B |
+|                 |            |          |           |           |        |       |       |           |
+|            Task |       void | 1.666 us | 0.0237 us | 0.0013 us | 0.0176 |     - |     - |     112 B |
+|       ValueTask |       void | 1.695 us | 0.3073 us | 0.0168 us | 0.0176 |     - |     - |     120 B |
+| PooledValueTask |       void | 1.648 us | 0.1708 us | 0.0094 us |      - |     - |     - |         - |
+|      PooledTask |       void | 1.654 us | 0.2729 us | 0.0150 us | 0.0098 |     - |     - |      72 B |
 ```
 
 The 3 tests do the exact same thing; the only thing that changes is the return type, i.e. whether it is `async Task<int>`, `async ValueTask<int>`, `async PooledTask<int>` or `async PooledValueTask<int>`.

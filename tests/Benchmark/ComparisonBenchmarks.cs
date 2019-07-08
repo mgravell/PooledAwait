@@ -17,8 +17,8 @@ namespace Benchmark
         // iterations, so that we're only really measuring the inner loop
         private const int InnerOps = 1000;
 
-        [Description("COCC"), Params(false, true)]
-        public bool ConfigureAwait { get; set; }
+        // [Params(false, true)]
+        public bool ConfigureAwait { get; set; } = false;
 
         [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(Task))]
         [BenchmarkCategory("int")]
