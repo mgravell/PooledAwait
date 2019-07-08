@@ -47,7 +47,7 @@ namespace PooledAwait.Internal
                     {
                         _ = task.Result;
                         return null;
-                    } catch(InvalidOperationException) {}
+                    } catch(AggregateException ex) when (ex.InnerException is InvalidOperationException) {}
                     if (!(task.Exception.InnerException is InvalidOperationException)) return null;
                     return factory;
                 }

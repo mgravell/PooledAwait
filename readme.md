@@ -45,8 +45,7 @@ And we pool that too, recycling it when the task is *awaited*. The only downside
 once you've awaited it the first time, **it has gone**. A cycling token is used to make sure you can't accidentally read the incorrect
 values after the result has been awaited.
 
-We can *even* do this for `Task[<T>]`, except here we can only avoid the boxed state machine (and maybe in the future we can lose the
-`TaskCompletionSource[<T>]`); hence `PooledTask[<T>]` exists too. No custom backing in this case, though, since a `Task[<T>]` will
+We can *even* do this for `Task[<T>]`, except here we can only avoid the boxed state machine; hence `PooledTask[<T>]` exists too. No custom backing in this case, though, since a `Task[<T>]` will
 need to be allocated (except for `Task.CompletedTask`, which we special-case).
 
 # Test results
@@ -56,17 +55,17 @@ allocations for `PooledValueTask<int>` and `PooledValueTask`.
 
 Disclosure: There's something wrong with 2 results; I haven't got to why yet.
 
-|          Method | Categories |         Mean |      Error |     StdDev |  Gen 0 |  Gen 1 | Gen 2 | Allocated |
-|---------------- |----------- |-------------:|-----------:|-----------:|-------:|-------:|------:|----------:|
-|            Task |        int | 2,060.952 ns | 150.538 ns |  8.2515 ns | 0.0352 |      - |     - |     120 B |
-|       ValueTask |        int | 2,094.100 ns | 193.854 ns | 10.6258 ns | 0.0391 |      - |     - |     128 B |
-| PooledValueTask |        int | 2,410.402 ns | 350.542 ns | 19.2144 ns |      - |      - |     - |         - |
-|      PooledTask |        int | 2,314.172 ns |  98.018 ns |  5.3727 ns | 0.0273 |      - |     - |      96 B |
-|                 |            |              |            |            |        |        |       |           |
-|            Task |       void | 2,056.287 ns |  87.165 ns |  4.7778 ns | 0.0352 |      - |     - |     112 B |
-|       ValueTask |     † void |     3.865 ns |   9.092 ns |  0.4984 ns | 0.0001 | 0.0000 |     - |       1 B |
-| PooledValueTask |     † void |    10.496 ns |  11.156 ns |  0.6115 ns | 0.0001 | 0.0000 |     - |         - |
-|      PooledTask |       void | 2,299.826 ns | 121.711 ns |  6.6714 ns | 0.0273 |      - |     - |      96 B |
+|          Method | Categories |         Mean |      Error |     StdDev | Ratio |  Gen 0 |  Gen 1 | Gen 2 | Allocated |
+|---------------- |----------- |-------------:|-----------:|-----------:|------:|-------:|-------:|------:|----------:|
+|            Task |        int | 1,709.080 ns | 202.236 ns | 11.0852 ns |  1.00 | 0.0176 |      - |     - |     120 B |
+|       ValueTask |        int | 1,710.595 ns |  42.522 ns |  2.3308 ns |  1.00 | 0.0195 |      - |     - |     128 B |
+| PooledValueTask |        int | 1,611.769 ns |  41.162 ns |  2.2562 ns |  0.94 |      - |      - |     - |         - |
+|      PooledTask |        int | 1,634.652 ns | 110.288 ns |  6.0452 ns |  0.96 | 0.0098 |      - |     - |      72 B |
+|                 |            |              |            |            |       |        |        |       |           |
+|            Task |       void | 1,708.674 ns | 277.749 ns | 15.2244 ns | 1.000 | 0.0176 |      - |     - |     112 B |
+|       ValueTask |       void |     5.827 ns |  21.813 ns |  1.1957 ns | 0.003 | 0.0002 | 0.0001 |     - |       2 B |
+| PooledValueTask |       void |     6.042 ns |   8.510 ns |  0.4665 ns | 0.004 | 0.0000 | 0.0000 |     - |       1 B |
+|      PooledTask |       void | 1,652.051 ns | 105.278 ns |  5.7706 ns | 0.967 | 0.0098 |      - |     - |      72 B |
 
 (I'm not sure that I trust the benchmarks marked †)
 
