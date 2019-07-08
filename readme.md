@@ -50,27 +50,28 @@ need to be allocated (except for `Task.CompletedTask`, which we special-case).
 
 # Test results
 
-Based on an operation that uses `Task.Yield()` to ensure that the operations are incomplete; legend:
+Based on an operation that uses `Task.Yield()` to ensure that the operations are incomplete; ".NET" means the inbuilt out-of-the box implementation; "Pooled" means the implementation from this library.
 
-- `BCL` means the inbuilt out-of-the box implementation
-- `Pooled` means the implementation from this library
-- `/T` means the generic version with a result, i.e. `Task<T>` instead of `Task`
+In particular, notice:
 
 - zero allocations for `PooledValueTask[<T>]` vs `ValueTask[<T>]`
 - *reduced* allocations for `PooledTask[<T>]` vs `Task[<T>]`
+- no performance degredation; just lower allocations
 
 ``` txt
-|   Method | Categories |     Mean |     Error |    StdDev |  Gen 0 | Gen 1 | Gen 2 | Allocated |
-|--------- |----------- |---------:|----------:|----------:|-------:|------:|------:|----------:|
-|   .NET/T |       Task | 1.769 us | 0.3167 us | 0.0174 us | 0.0176 |     - |     - |     120 B |
-|     .NET |       Task | 1.723 us | 0.1026 us | 0.0056 us | 0.0176 |     - |     - |     112 B |
-| Pooled/T |       Task | 1.626 us | 0.2665 us | 0.0146 us | 0.0098 |     - |     - |      72 B |
-|   Pooled |       Task | 1.625 us | 0.1137 us | 0.0062 us | 0.0098 |     - |     - |      72 B |
-|          |            |          |           |           |        |       |       |           |
-|   .NET/T |  ValueTask | 1.730 us | 0.0278 us | 0.0015 us | 0.0195 |     - |     - |     128 B |
-|     .NET |  ValueTask | 1.681 us | 0.0502 us | 0.0028 us | 0.0176 |     - |     - |     120 B |
-| Pooled/T |  ValueTask | 1.628 us | 0.1242 us | 0.0068 us |      - |     - |     - |         - |
-|   Pooled |  ValueTask | 1.643 us | 0.0885 us | 0.0049 us |      - |     - |     - |         - |
+| Method |   Categories |     Mean |     Error |    StdDev |  Gen 0 | Gen 1 | Gen 2 | Allocated |
+|------- |------------- |---------:|----------:|----------:|-------:|------:|------:|----------:|
+|   .NET |      Task<T> | 1.738 us | 0.1332 us | 0.0073 us | 0.0176 |     - |     - |     120 B |
+| Pooled |      Task<T> | 1.615 us | 0.1809 us | 0.0099 us | 0.0098 |     - |     - |      72 B |
+|        |              |          |           |           |        |       |       |           |
+|   .NET |         Task | 1.693 us | 0.2390 us | 0.0131 us | 0.0176 |     - |     - |     112 B |
+| Pooled |         Task | 1.611 us | 0.1460 us | 0.0080 us | 0.0098 |     - |     - |      72 B |
+|        |              |          |           |           |        |       |       |           |
+|   .NET | ValueTask<T> | 1.710 us | 0.0786 us | 0.0043 us | 0.0195 |     - |     - |     128 B |
+| Pooled | ValueTask<T> | 1.635 us | 0.0677 us | 0.0037 us |      - |     - |     - |         - |
+|        |              |          |           |           |        |       |       |           |
+|   .NET |    ValueTask | 1.701 us | 0.1759 us | 0.0096 us | 0.0176 |     - |     - |     120 B |
+| Pooled |    ValueTask | 1.658 us | 0.1115 us | 0.0061 us |      - |     - |     - |         - |
 ```
 
 The tests do the exact same thing; the only thing that changes is the return type, i.e. whether it is `async Task<int>`, `async ValueTask<int>`, `async PooledTask<int>` or `async PooledValueTask<int>`.
