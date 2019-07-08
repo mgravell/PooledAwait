@@ -4,6 +4,7 @@
     <TargetFrameworks>netcoreapp3.0;netstandard2.1;netstandard2.0;net45;net46;netstandard1.3</TargetFrameworks>
     <SignAssembly>true</SignAssembly>
     <IncludeTaskExtensions>true</IncludeTaskExtensions>
+    <PackageId>PooledAwait</PackageId>
   </PropertyGroup>
 
   <PropertyGroup Condition="$(TargetFramework)=='netstandard2.1'">

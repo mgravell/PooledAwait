@@ -16,7 +16,6 @@
     <RepositoryUrl>https://github.com/mgravell/PooledAwait/</RepositoryUrl>
     <PackageProjectUrl>https://github.com/mgravell/PooledAwait/</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/mgravell/PooledAwait/blob/master/LICENSE.TXT</PackageLicenseUrl>
-    <PackageId>PooledAwait</PackageId>
 
     <DebugSymbols>true</DebugSymbols>
     <DebugType>embedded</DebugType>

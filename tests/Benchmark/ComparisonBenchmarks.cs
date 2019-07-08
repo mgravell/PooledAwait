@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Benchmark
 {
-    [MemoryDiagnoser, ShortRunJob]
+    [MemoryDiagnoser, CoreJob, ClrJob]
     [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
     [CategoriesColumn]
     public class ComparisonBenchmarks
