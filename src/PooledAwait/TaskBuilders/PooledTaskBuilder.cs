@@ -15,7 +15,7 @@ namespace PooledAwait.TaskBuilders
     [EditorBrowsable(EditorBrowsableState.Never)]
     public struct PooledTaskBuilder
     {
-        private TaskCompletionSource<bool>? _state;
+        private object? _factoryState;
         private Exception _exception;
 
         [Browsable(false)]
@@ -33,7 +33,7 @@ namespace PooledAwait.TaskBuilders
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetResult()
         {
-            _state?.TrySetResult(true);
+            if (_factoryState != null) PendingTaskFactory<bool>.TrySetResult(_factoryState, true);
         }
 
         [Browsable(false)]
@@ -41,14 +41,14 @@ namespace PooledAwait.TaskBuilders
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetException(Exception exception)
         {
-            EnsureState().TrySetException(exception);
+            PendingTaskFactory<bool>.TrySetException(EnsureState(), exception);
             _exception = exception;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private TaskCompletionSource<bool> EnsureState() => _state ?? CreateState();
+        private object EnsureState() => _factoryState ?? CreateState();
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private TaskCompletionSource<bool> CreateState() => _state ?? (_state = new TaskCompletionSource<bool>());
+        private object CreateState() => _factoryState ?? (_factoryState = PendingTaskFactory<bool>.Create());
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -57,7 +57,7 @@ namespace PooledAwait.TaskBuilders
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                if (_state != null) return new PooledTask(_state);
+                if (_factoryState != null) return new PooledTask(_factoryState);
                 if (_exception != null) return new PooledTask(_exception);
                 return default;
             }

@@ -13,7 +13,7 @@ namespace PooledAwait
         private readonly object? _taskOrSource;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal PooledTask(TaskCompletionSource<bool> source) => _taskOrSource = source;
+        internal PooledTask(object taskOrSource) => _taskOrSource = taskOrSource;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal PooledTask(Exception exception) => _taskOrSource = Task.FromException(exception);
 

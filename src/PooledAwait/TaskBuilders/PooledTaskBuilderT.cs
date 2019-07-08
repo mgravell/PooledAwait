@@ -15,8 +15,9 @@ namespace PooledAwait.TaskBuilders
     [EditorBrowsable(EditorBrowsableState.Never)]
     public struct PooledTaskBuilder<T>
     {
-        private TaskCompletionSource<T>? _state;
+        private object? _factoryState;
         private Exception _exception;
+        private T _result;
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -33,7 +34,8 @@ namespace PooledAwait.TaskBuilders
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetResult(T result)
         {
-            _state?.TrySetResult(result);
+            if (_factoryState != null) PendingTaskFactory<T>.TrySetResult(_factoryState, result);
+            _result = result;
         }
 
         [Browsable(false)]
@@ -41,14 +43,14 @@ namespace PooledAwait.TaskBuilders
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetException(Exception exception)
         {
-            EnsureState().TrySetException(exception);
+            PendingTaskFactory<T>.TrySetException(EnsureState(), exception);
             _exception = exception;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private TaskCompletionSource<T> EnsureState() => _state ?? CreateState();
+        private object EnsureState() => _factoryState ?? CreateState();
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private TaskCompletionSource<T> CreateState() => _state ?? (_state = new TaskCompletionSource<T>());
+        private object CreateState() => _factoryState ?? (_factoryState = PendingTaskFactory<T>.Create());
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -57,9 +59,9 @@ namespace PooledAwait.TaskBuilders
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                if (_state != null) return new PooledTask<T>(_state);
+                if (_factoryState != null) return new PooledTask<T>(_factoryState);
                 if (_exception != null) return new PooledTask<T>(_exception);
-                return default;
+                return new PooledTask<T>(_result);
             }
         }
 
