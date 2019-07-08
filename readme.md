@@ -73,7 +73,6 @@ Based on an operation that uses `Task.Yield()` to ensure that the operations are
 |   Pooled |  ValueTask | 1.643 us | 0.0885 us | 0.0049 us |      - |     - |     - |         - |
 ```
 
-The 3 tests do the exact same thing; the only thing that changes is the return type, i.e. whether it is `async Task<int>`, `async ValueTask<int>`, `async PooledTask<int>` or `async PooledValueTask<int>`.
-
+The tests do the exact same thing; the only thing that changes is the return type, i.e. whether it is `async Task<int>`, `async ValueTask<int>`, `async PooledTask<int>` or `async PooledValueTask<int>`.
 All of them have the same threading/execution-context/sync-context semantics; there's no cheating going on.
 
