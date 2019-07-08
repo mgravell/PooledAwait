@@ -13,10 +13,8 @@ namespace PooledAwait.Internal
             public void Increment() => Interlocked.Increment(ref _value);
             public long Value => Interlocked.Read(ref _value);
             public override string ToString() => Value.ToString();
-            public override bool Equals(object? obj)
-                => throw new NotSupportedException();
-            public override int GetHashCode()
-                => throw new NotSupportedException();
+            public override bool Equals(object? obj) => ThrowHelper.ThrowNotSupportedException<bool>();
+            public override int GetHashCode() => ThrowHelper.ThrowNotSupportedException<int>();
             public void Reset() => Interlocked.Exchange(ref _value, 0);
         }
 

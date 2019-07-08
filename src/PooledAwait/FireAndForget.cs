@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using PooledAwait.Internal;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace PooledAwait
@@ -20,13 +21,13 @@ namespace PooledAwait
         /// Gets the instance as a task
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Task AsTask() => Task.CompletedTask;
+        public Task AsTask() => TaskUtils.CompletedTask;
 
         /// <summary>
         /// Gets the instance as a task
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Task(FireAndForget _) => Task.CompletedTask;
+        public static implicit operator Task(FireAndForget _) => TaskUtils.CompletedTask;
 
         /// <summary>
         /// Gets the instance as a value-task

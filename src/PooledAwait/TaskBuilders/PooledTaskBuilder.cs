@@ -60,8 +60,8 @@ namespace PooledAwait.TaskBuilders
             {
                 SystemTask task;
                 if (_source.HasTask) task = _source.Task;
-                else if (_exception != null) task = SystemTask.FromException(_exception);
-                else task = SystemTask.CompletedTask;
+                else if (_exception != null) task = TaskUtils.FromException(_exception);
+                else task = TaskUtils.CompletedTask;
                 return new PooledTask(task);
             }
         }

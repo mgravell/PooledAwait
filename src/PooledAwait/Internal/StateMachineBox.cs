@@ -4,7 +4,10 @@ using System.Threading;
 
 namespace PooledAwait.Internal
 {
-    internal sealed class StateMachineBox<TStateMachine> : IThreadPoolWorkItem
+    internal sealed class StateMachineBox<TStateMachine>
+#if PLAT_THREADPOOLWORKITEM
+        : IThreadPoolWorkItem
+#endif
             where TStateMachine : IAsyncStateMachine
     {
         private TStateMachine _stateMachine;
@@ -62,7 +65,11 @@ namespace PooledAwait.Internal
                 var syncContetx = SynchronizationContext.Current;
                 if (syncContetx == null)
                 {
+#if PLAT_THREADPOOLWORKITEM
                     ThreadPool.UnsafeQueueUserWorkItem(box, false);
+#else
+                    ThreadPool.UnsafeQueueUserWorkItem(s_WaitCallback, box);
+#endif
                 }
                 else
                 {

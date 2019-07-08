@@ -119,8 +119,7 @@ namespace PooledAwait
                 if (task.IsCompleted) return false;
 
                 if (!source.TrySetResult(default!)) return false;
-                if (!task.IsCompleted) return false;
-                if (!task.IsCompletedSuccessfully) return false;
+                if (task.Status != TaskStatus.RanToCompletion) return false;
 
                 source = CreateOptimized();
                 task = source.Task;

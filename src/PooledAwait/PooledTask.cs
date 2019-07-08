@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PooledAwait.Internal;
+using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -19,7 +20,7 @@ namespace PooledAwait
         /// Gets the instance as a task
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Task AsTask() => _task ?? Task.CompletedTask;
+        public Task AsTask() => _task ?? TaskUtils.CompletedTask;
 
         /// <summary>
         /// Gets the instance as a task
