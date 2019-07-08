@@ -54,24 +54,32 @@ Based on an operation that uses `Task.Yield()` to ensure that the operations are
 
 In particular, notice:
 
-- zero allocations for `PooledValueTask[<T>]` vs `ValueTask[<T>]`
+- zero allocations for `PooledValueTask[<T>]` vs `ValueTask[<T>]` (on .NET Core; *significantly reduced* on .NET Framework)
 - *reduced* allocations for `PooledTask[<T>]` vs `Task[<T>]`
 - no performance degredation; just lower allocations
 
 ``` txt
-| Method |   Categories |     Mean |     Error |    StdDev |  Gen 0 | Gen 1 | Gen 2 | Allocated |
-|------- |------------- |---------:|----------:|----------:|-------:|------:|------:|----------:|
-|   .NET |      Task<T> | 1.738 us | 0.1332 us | 0.0073 us | 0.0176 |     - |     - |     120 B |
-| Pooled |      Task<T> | 1.615 us | 0.1809 us | 0.0099 us | 0.0098 |     - |     - |      72 B |
-|        |              |          |           |           |        |       |       |           |
-|   .NET |         Task | 1.693 us | 0.2390 us | 0.0131 us | 0.0176 |     - |     - |     112 B |
-| Pooled |         Task | 1.611 us | 0.1460 us | 0.0080 us | 0.0098 |     - |     - |      72 B |
-|        |              |          |           |           |        |       |       |           |
-|   .NET | ValueTask<T> | 1.710 us | 0.0786 us | 0.0043 us | 0.0195 |     - |     - |     128 B |
-| Pooled | ValueTask<T> | 1.635 us | 0.0677 us | 0.0037 us |      - |     - |     - |         - |
-|        |              |          |           |           |        |       |       |           |
-|   .NET |    ValueTask | 1.701 us | 0.1759 us | 0.0096 us | 0.0176 |     - |     - |     120 B |
-| Pooled |    ValueTask | 1.658 us | 0.1115 us | 0.0061 us |      - |     - |     - |         - |
+| Method |  Job | Runtime |   Categories |     Mean |     Error |    StdDev |  Gen 0 |  Gen 1 | Gen 2 | Allocated |
+|------- |----- |-------- |------------- |---------:|----------:|----------:|-------:|-------:|------:|----------:|
+|   .NET |  Clr |     Clr |      Task<T> | 2.377 us | 0.0570 us | 0.0560 us | 0.0508 | 0.0039 |     - |     344 B |
+| Pooled |  Clr |     Clr |      Task<T> | 2.343 us | 0.0388 us | 0.0344 us | 0.0273 | 0.0039 |     - |     182 B |
+|   .NET | Core |    Core |      Task<T> | 1.726 us | 0.0217 us | 0.0203 us | 0.0176 |      - |     - |     120 B |
+| Pooled | Core |    Core |      Task<T> | 1.644 us | 0.0137 us | 0.0128 us | 0.0098 |      - |     - |      72 B |
+|        |      |         |              |          |           |           |        |        |       |           |
+|   .NET |  Clr |     Clr |         Task | 2.386 us | 0.0464 us | 0.0749 us | 0.0508 | 0.0039 |     - |     336 B |
+| Pooled |  Clr |     Clr |         Task | 2.426 us | 0.0547 us | 0.1028 us | 0.0273 | 0.0039 |     - |     182 B |
+|   .NET | Core |    Core |         Task | 1.718 us | 0.0146 us | 0.0137 us | 0.0176 |      - |     - |     112 B |
+| Pooled | Core |    Core |         Task | 1.614 us | 0.0072 us | 0.0064 us | 0.0098 |      - |     - |      72 B |
+|        |      |         |              |          |           |           |        |        |       |           |
+|   .NET |  Clr |     Clr | ValueTask<T> | 2.358 us | 0.0468 us | 0.0460 us | 0.0508 | 0.0039 |     - |     352 B |
+| Pooled |  Clr |     Clr | ValueTask<T> | 2.303 us | 0.0477 us | 0.0422 us | 0.0117 | 0.0039 |     - |     101 B |
+|   .NET | Core |    Core | ValueTask<T> | 1.736 us | 0.0215 us | 0.0201 us | 0.0195 |      - |     - |     128 B |
+| Pooled | Core |    Core | ValueTask<T> | 1.610 us | 0.0101 us | 0.0094 us |      - |      - |     - |         - |
+|        |      |         |              |          |           |           |        |        |       |           |
+|   .NET |  Clr |     Clr |    ValueTask | 2.347 us | 0.0449 us | 0.0461 us | 0.0508 | 0.0039 |     - |     344 B |
+| Pooled |  Clr |     Clr |    ValueTask | 2.333 us | 0.0452 us | 0.0465 us | 0.0117 | 0.0039 |     - |     100 B |
+|   .NET | Core |    Core |    ValueTask | 1.655 us | 0.0092 us | 0.0086 us | 0.0176 |      - |     - |     120 B |
+| Pooled | Core |    Core |    ValueTask | 1.638 us | 0.0100 us | 0.0093 us |      - |      - |     - |         - |
 ```
 
 The tests do the exact same thing; the only thing that changes is the return type, i.e. whether it is `async Task<int>`, `async ValueTask<int>`, `async PooledTask<int>` or `async PooledValueTask<int>`.
