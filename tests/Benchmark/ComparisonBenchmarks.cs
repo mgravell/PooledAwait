@@ -1,6 +1,7 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using PooledAwait;
+using System.ComponentModel;
 using System.Threading.Tasks;
 
 namespace Benchmark
@@ -10,16 +11,24 @@ namespace Benchmark
     [CategoriesColumn]
     public class ComparisonBenchmarks
     {
+        // note: all the benchmarks use Task/Task<T> for the public API, because BenchmarkDotNet
+        // doesn't work reliably with more exotic task-types (even just ValueTask fails); instead,
+        // we'll obscure the cost of the outer awaitable by doing a relatively large number of
+        // iterations, so that we're only really measuring the inner loop
         private const int InnerOps = 1000;
 
-        [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(Task), Baseline = true)]
+        [Description("COCC"), Params(false, true)]
+        public bool ConfigureAwait { get; set; }
+
+        [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(Task))]
         [BenchmarkCategory("int")]
         public async Task<int> ViaTaskT()
         {
             int sum = 0;
             for (int i = 0; i < InnerOps; i++)
-                sum += await Inner(1, 2).ConfigureAwait(false);
+                sum += await Inner(1, 2).ConfigureAwait(ConfigureAwait);
             return sum;
+
             static async Task<int> Inner(int x, int y)
             {
                 int i = x;
@@ -30,12 +39,12 @@ namespace Benchmark
             }
         }
 
-        [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(Task), Baseline = true)]
+        [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(Task))]
         [BenchmarkCategory("void")]
         public async Task ViaTask()
         {
             for (int i = 0; i < InnerOps; i++)
-                await Inner().ConfigureAwait(false);
+                await Inner().ConfigureAwait(ConfigureAwait);
 
             static async Task Inner()
             {
@@ -46,12 +55,13 @@ namespace Benchmark
 
         [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(ValueTask))]
         [BenchmarkCategory("int")]
-        public async ValueTask<int> ViaValueTaskT()
+        public async Task<int> ViaValueTaskT()
         {
             int sum = 0;
             for (int i = 0; i < InnerOps; i++)
-                sum += await Inner(1, 2).ConfigureAwait(false);
+                sum += await Inner(1, 2).ConfigureAwait(ConfigureAwait);
             return sum;
+
             static async ValueTask<int> Inner(int x, int y)
             {
                 int i = x;
@@ -64,10 +74,11 @@ namespace Benchmark
 
         [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(ValueTask))]
         [BenchmarkCategory("void")]
-        public async ValueTask ViaValueTask()
+        public async Task ViaValueTask()
         {
             for (int i = 0; i < InnerOps; i++)
-                await Inner().ConfigureAwait(false);
+                await Inner().ConfigureAwait(ConfigureAwait);
+
             static async ValueTask Inner()
             {
                 await Task.Yield();
@@ -77,83 +88,67 @@ namespace Benchmark
 
         [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(PooledValueTask))]
         [BenchmarkCategory("int")]
-        public ValueTask<int> ViaPooledValueTaskT()
+        public async Task<int> ViaPooledValueTaskT()
         {
-            return Impl(); // thunks the type back to ValueTaskT
+            int sum = 0;
+            for (int i = 0; i < InnerOps; i++)
+                sum += await Inner(1, 2).ConfigureAwait(ConfigureAwait);
+            return sum;
 
-            static async PooledValueTask<int> Impl()
+            static async PooledValueTask<int> Inner(int x, int y)
             {
-                int sum = 0;
-                for (int i = 0; i < InnerOps; i++)
-                    sum += await Inner(1, 2).ConfigureAwait(false);
-                return sum;
-                static async PooledValueTask<int> Inner(int x, int y)
-                {
-                    int i = x;
-                    await Task.Yield();
-                    i *= y;
-                    await Task.Yield();
-                    return 5 * i;
-                }
+                int i = x;
+                await Task.Yield();
+                i *= y;
+                await Task.Yield();
+                return 5 * i;
             }
         }
 
         [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(PooledValueTask))]
         [BenchmarkCategory("void")]
-        public ValueTask ViaPooledValueTask()
+        public async Task ViaPooledValueTask()
         {
-            return Impl(); // thunks the type back to ValueTaskT
+            for (int i = 0; i < InnerOps; i++)
+                await Inner().ConfigureAwait(ConfigureAwait);
 
-            static async PooledValueTask Impl()
+            static async PooledValueTask Inner()
             {
-                for (int i = 0; i < InnerOps; i++)
-                    await Inner().ConfigureAwait(false);
-                static async PooledValueTask Inner()
-                {
-                    await Task.Yield();
-                    await Task.Yield();
-                }
-            }
-        }
-
-        [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(PooledTask))]
-        [BenchmarkCategory("void")]
-        public Task ViaPooledTask()
-        {
-            return Impl(); // thunks the type back to ValueTaskT
-
-            static async PooledTask Impl()
-            {
-                for (int i = 0; i < InnerOps; i++)
-                    await Inner().ConfigureAwait(false);
-                static async PooledTask Inner()
-                {
-                    await Task.Yield();
-                    await Task.Yield();
-                }
+                await Task.Yield();
+                await Task.Yield();
             }
         }
 
         [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(PooledTask))]
         [BenchmarkCategory("int")]
-        public Task ViaPooledTaskT()
+        public async Task<int> ViaPooledTaskT()
         {
-            return Impl(); // thunks the type back to ValueTaskT
+            int sum = 0;
+            for (int i = 0; i < InnerOps; i++)
+                sum += await Inner(1, 2).ConfigureAwait(ConfigureAwait);
+            return sum;
 
-            static async PooledTask<int> Impl()
+            static async PooledTask<int> Inner(int x, int y)
             {
-                int sum = 0;
-                for (int i = 0; i < InnerOps; i++)
-                    sum += await Inner(1, 2).ConfigureAwait(false);
-                return sum;
-                static async PooledTask<int> Inner(int x, int y)
-                {
-                    int i = x;
-                    await Task.Yield();
-                    i *= y;
-                    await Task.Yield();
-                    return 5 * i;
-                }
+                int i = x;
+                await Task.Yield();
+                i *= y;
+                await Task.Yield();
+                return 5 * i;
+            }
+        }
+
+        [Benchmark(OperationsPerInvoke = InnerOps, Description = nameof(PooledTask))]
+        [BenchmarkCategory("void")]
+        public async Task ViaPooledTask()
+        {
+            for (int i = 0; i < InnerOps; i++)
+                await Inner().ConfigureAwait(ConfigureAwait);
+
+            static async PooledTask Inner()
+            {
+                await Task.Yield();
+                await Task.Yield();
             }
         }
     }

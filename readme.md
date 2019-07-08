@@ -53,21 +53,25 @@ need to be allocated (except for `Task.CompletedTask`, which we special-case).
 Based on an operation that uses `Task.Yield()` to ensure that the operations are incomplete. The thing to note is the zero
 allocations for `PooledValueTask<int>` and `PooledValueTask`.
 
-Disclosure: There's something wrong with 2 results; I haven't got to why yet.
-
-|          Method | Categories |         Mean |      Error |     StdDev | Ratio |  Gen 0 |  Gen 1 | Gen 2 | Allocated |
-|---------------- |----------- |-------------:|-----------:|-----------:|------:|-------:|-------:|------:|----------:|
-|            Task |        int | 1,709.080 ns | 202.236 ns | 11.0852 ns |  1.00 | 0.0176 |      - |     - |     120 B |
-|       ValueTask |        int | 1,710.595 ns |  42.522 ns |  2.3308 ns |  1.00 | 0.0195 |      - |     - |     128 B |
-| PooledValueTask |        int | 1,611.769 ns |  41.162 ns |  2.2562 ns |  0.94 |      - |      - |     - |         - |
-|      PooledTask |        int | 1,634.652 ns | 110.288 ns |  6.0452 ns |  0.96 | 0.0098 |      - |     - |      72 B |
-|                 |            |              |            |            |       |        |        |       |           |
-|            Task |       void | 1,708.674 ns | 277.749 ns | 15.2244 ns | 1.000 | 0.0176 |      - |     - |     112 B |
-|       ValueTask |       void |     5.827 ns |  21.813 ns |  1.1957 ns | 0.003 | 0.0002 | 0.0001 |     - |       2 B |
-| PooledValueTask |       void |     6.042 ns |   8.510 ns |  0.4665 ns | 0.004 | 0.0000 | 0.0000 |     - |       1 B |
-|      PooledTask |       void | 1,652.051 ns | 105.278 ns |  5.7706 ns | 0.967 | 0.0098 |      - |     - |      72 B |
-
-(I'm not sure that I trust the benchmarks marked †)
+|          Method | Categories | ConfigureAwait |     Mean |     Error |    StdDev |  Gen 0 | Gen 1 | Gen 2 | Allocated |
+|---------------- |----------- |------------------------- |---------:|----------:|----------:|-------:|------:|------:|----------:|
+|            Task |        int |          False | 1.729 us | 0.2741 us | 0.0150 us | 0.0176 |     - |     - |     120 B |
+|       ValueTask |        int |          False | 1.706 us | 0.1328 us | 0.0073 us | 0.0195 |     - |     - |     128 B |
+| PooledValueTask |        int |          False | 1.608 us | 0.2610 us | 0.0143 us |      - |     - |     - |         - |
+|      PooledTask |        int |          False | 1.618 us | 0.0688 us | 0.0038 us | 0.0098 |     - |     - |      72 B |
+|            Task |        int |           True | 1.725 us | 0.3130 us | 0.0172 us | 0.0176 |     - |     - |     120 B |
+|       ValueTask |        int |           True | 1.689 us | 0.2841 us | 0.0156 us | 0.0195 |     - |     - |     128 B |
+| PooledValueTask |        int |           True | 1.648 us | 0.2475 us | 0.0136 us |      - |     - |     - |         - |
+|      PooledTask |        int |           True | 1.607 us | 0.1426 us | 0.0078 us | 0.0098 |     - |     - |      72 B |
+|                 |            |                |          |           |           |        |       |       |           |
+|            Task |       void |          False | 1.666 us | 0.0237 us | 0.0013 us | 0.0176 |     - |     - |     112 B |
+|       ValueTask |       void |          False | 1.695 us | 0.3073 us | 0.0168 us | 0.0176 |     - |     - |     120 B |
+| PooledValueTask |       void |          False | 1.648 us | 0.1708 us | 0.0094 us |      - |     - |     - |         - |
+|      PooledTask |       void |          False | 1.654 us | 0.2729 us | 0.0150 us | 0.0098 |     - |     - |      72 B |
+|            Task |       void |           True | 1.645 us | 1.7159 us | 0.0941 us | 0.0176 |     - |     - |     112 B |
+|       ValueTask |       void |           True | 1.678 us | 0.0929 us | 0.0051 us | 0.0176 |     - |     - |     120 B |
+| PooledValueTask |       void |           True | 1.666 us | 0.2093 us | 0.0115 us |      - |     - |     - |         - |
+|      PooledTask |       void |           True | 1.620 us | 0.0583 us | 0.0032 us | 0.0098 |     - |     - |      72 B |
 
 The 3 tests do the exact same thing; the only thing that changes is the return type, i.e. whether it is `async Task<int>`, `async ValueTask<int>`, `async PooledTask<int>` or `async PooledValueTask<int>`.
 
