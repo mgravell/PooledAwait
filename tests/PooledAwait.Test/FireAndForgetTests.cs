@@ -29,7 +29,7 @@ namespace PooledAwait.Test
             async ValueTask TestAsync()
             {
                 LockedAdd(list, "d");
-                await Task.Yield();
+                await Task.Delay(50);
                 LockedAdd(list, "e");
                 await Task.Yield();
                 LockedAdd(list, "f");
@@ -55,7 +55,7 @@ namespace PooledAwait.Test
             async FireAndForget TestAsync()
             {
                 LockedAdd(list, "d");
-                await Task.Yield();
+                await Task.Delay(50);
                 LockedAdd(list, "e");
                 await Task.Yield();
                 LockedAdd(list, "f");

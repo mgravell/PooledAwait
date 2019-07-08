@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 
@@ -25,6 +26,9 @@ namespace PooledAwait.Internal
             StateMachineBoxAllocated,
             StateMachineBoxRecycled,
             ItemBoxAllocated;
+
+        public static long TotalAllocations =>
+            PooledStateAllocated.Value + StateMachineBoxAllocated.Value + ItemBoxAllocated.Value;
 
         internal static void Reset()
         {

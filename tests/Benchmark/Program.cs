@@ -2,6 +2,7 @@
 
 #if DEBUG
 using System;
+using System.Threading.Tasks;
 using PooledAwait.Internal;
 #else
 using BenchmarkDotNet.Running;
@@ -14,7 +15,7 @@ namespace Benchmark
 #if DEBUG
         static async Task Main()
         {
-            var obj = new Awaitable();
+            var obj = new ComparisonBenchmarks();
 
             for (int i = 0; i < 100; i++)
                 await obj.ViaPooledValueTask();
