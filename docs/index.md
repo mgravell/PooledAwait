@@ -45,7 +45,7 @@ private async PooledValueTask<int> SomeMethod()
 For methods on your `public` API surface, you can use a "local function" to achieve the same thing without changing the exposed return type:
 
 ``` c#
-private ValueTask<int> SomeMethod() // not marked async
+public ValueTask<int> SomeMethod() // not marked async
 {
 	return Impl();
 	async PooledValueTask<int>() Impl()
