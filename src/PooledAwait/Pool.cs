@@ -21,7 +21,10 @@ namespace PooledAwait
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Return<T>(T value) where T : class
-            => Pool<T>.TryPut(value);
+        {
+            if (value is IResettable reset) reset.Reset();
+            Pool<T>.TryPut(value);
+        }
 
         /// <summary>
         /// Wraps a value-type into a boxed instance, using an object pool;

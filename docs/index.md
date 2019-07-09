@@ -135,12 +135,18 @@ Ever need a light-weight basic pool of objects? That's this. Nothing fancy. The 
 
 ``` c#
 var obj = Pool.TryRent<SomeType>() ?? new SomeType();
-...
+// ...
 Pool.Return(obj);
 ```
 
 Note that it leaves creation to you (hence the `?? new SomeType()`), and it is the caller's responsibility to not retain and access
 a reference object that you have notionally returned to the pool.
+
+Considerations:
+
+- you may wish to use `try`/`finally` to put things back into the pool even if you leave through failure
+- if the object might **unnecessarily** keep large graphs of sub-objects "reachable" (in terms of GC), you should ensure that any references are wiped before putting an object into the pool
+- if the object implements `IResettable`, the pool will automatically call the `Reset()` method for you before storing items in the pool
 
 A second API is exposed for use with value-types; there are a lot of scenarios in which you have some state that you need to expose
 to an API that takes `object` - especially with callbacks like `WaitCallback`, `SendOrPostCallback`, `Action<object>`, etc. The data
