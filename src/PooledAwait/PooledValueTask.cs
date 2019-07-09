@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Sources;
 
@@ -10,6 +11,13 @@ namespace PooledAwait
     [AsyncMethodBuilder(typeof(TaskBuilders.PooledValueTaskBuilder))]
     public readonly struct PooledValueTask
     {
+        /// <summary><see cref="Object.Equals(Object)"/></summary>
+        public override bool Equals(object obj) => obj is PooledValueTask pvt && _source == pvt._source && _token == pvt._token;
+        /// <summary><see cref="Object.GetHashCode"/></summary>
+        public override int GetHashCode() => (_source == null ? 0 : _source.GetHashCode()) ^ _token;
+        /// <summary><see cref="Object.ToString"/></summary>
+        public override string ToString() => nameof(PooledValueTask);
+
         private readonly IValueTaskSource _source;
         private readonly short _token;
 

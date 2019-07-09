@@ -11,6 +11,13 @@ namespace PooledAwait
     [AsyncMethodBuilder(typeof(TaskBuilders.PooledTaskBuilder))]
     public readonly struct PooledTask
     {
+        /// <summary><see cref="Object.Equals(Object)"/></summary>
+        public override bool Equals(object obj) => obj is PooledTask pt && _task ==  pt._task;
+        /// <summary><see cref="Object.GetHashCode"/></summary>
+        public override int GetHashCode() => _task == null ? 0 : _task.GetHashCode();
+        /// <summary><see cref="Object.ToString"/></summary>
+        public override string ToString() => nameof(PooledTask);
+
         private readonly Task _task;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

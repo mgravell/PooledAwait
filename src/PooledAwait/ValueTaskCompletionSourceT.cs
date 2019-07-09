@@ -16,6 +16,13 @@ namespace PooledAwait
     /// <remarks>When possible, this will bypass TaskCompletionSource<typeparamref name="T"/> completely</remarks>
     public readonly struct ValueTaskCompletionSource<T>
     {
+        /// <summary><see cref="Object.Equals(Object)"/></summary>
+        public override bool Equals(object obj) => obj is ValueTaskCompletionSource<T> other && _state == other._state;
+        /// <summary><see cref="Object.GetHashCode"/></summary>
+        public override int GetHashCode() => _state == null ? 0 : _state.GetHashCode();
+        /// <summary><see cref="Object.ToString"/></summary>
+        public override string ToString() => "ValueTaskCompletionSource";
+
 #if !NETSTANDARD1_3
         private static readonly Func<Task<T>, Exception, bool>? s_TrySetException = TryCreate<Exception>(nameof(TrySetException));
         private static readonly Func<Task<T>, T, bool>? s_TrySetResult = TryCreate<T>(nameof(TrySetResult));
@@ -46,15 +53,6 @@ namespace PooledAwait
         }
 
         internal bool IsOptimized => _state is Task<T>;
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private void SpinUntilCompleted(Task<T> task)
-        {
-            // Spin wait until the completion is finalized by another thread.
-            var sw = new SpinWait();
-            while (!task.IsCompleted)
-                sw.SpinOnce();
-        }
 
         /// <summary>
         /// Create an instance pointing to a new task
@@ -181,6 +179,15 @@ namespace PooledAwait
                 return true;
             }
             catch { return false; }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void SpinUntilCompleted(Task<T> task)
+        {
+            // Spin wait until the completion is finalized by another thread.
+            var sw = new SpinWait();
+            while (!task.IsCompleted)
+                sw.SpinOnce();
         }
 #endif
     }

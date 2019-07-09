@@ -14,6 +14,10 @@ namespace PooledAwait.TaskBuilders
     [EditorBrowsable(EditorBrowsableState.Never)]
     public struct FireAndForgetBuilder
     {
+        public override bool Equals(object obj) => ThrowHelper.ThrowNotSupportedException<bool>();
+        public override int GetHashCode() => ThrowHelper.ThrowNotSupportedException<int>();
+        public override string ToString() => nameof(FireAndForgetBuilder);
+
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

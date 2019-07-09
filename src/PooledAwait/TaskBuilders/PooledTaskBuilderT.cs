@@ -15,6 +15,10 @@ namespace PooledAwait.TaskBuilders
     [EditorBrowsable(EditorBrowsableState.Never)]
     public struct PooledTaskBuilder<T>
     {
+        public override bool Equals(object obj) => ThrowHelper.ThrowNotSupportedException<bool>();
+        public override int GetHashCode() => ThrowHelper.ThrowNotSupportedException<int>();
+        public override string ToString() => nameof(PooledTaskBuilder);
+
         private ValueTaskCompletionSource<T> _source;
         private Exception _exception;
         private T _result;

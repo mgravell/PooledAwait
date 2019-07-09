@@ -47,7 +47,9 @@ namespace PooledAwait
                 Pool<ItemBox<T>>.TryPut(box);
                 return value;
             }
+#pragma warning disable IDE0044 // make field readonly? no, IDE, you're wrong
             private T _value;
+#pragma warning restore IDE0044
         }
     }
 }

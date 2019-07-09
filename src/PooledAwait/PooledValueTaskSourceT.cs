@@ -1,5 +1,6 @@
 ﻿using PooledAwait.Internal;
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -10,6 +11,14 @@ namespace PooledAwait
     /// </summary>
     public readonly struct PooledValueTaskSource<T>
     {
+        /// <summary><see cref="Object.Equals(Object)"/></summary>
+        public override bool Equals(object obj) => obj is PooledValueTaskSource<T> pvt && _token == pvt._token &&
+            (_source != null ? _source == pvt._source : (pvt._source == null && EqualityComparer<T>.Default.Equals(_value, pvt._value)));
+        /// <summary><see cref="Object.GetHashCode"/></summary>
+        public override int GetHashCode() => (_source == null ? EqualityComparer<T>.Default.GetHashCode(_value) : _source.GetHashCode()) ^ _token;
+        /// <summary><see cref="Object.ToString"/></summary>
+        public override string ToString() => nameof(PooledValueTaskSource);
+
         /// <summary>
         /// Gets the task that corresponds to this instance; it can only be awaited once
         /// </summary>
