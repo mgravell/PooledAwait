@@ -73,6 +73,7 @@ FireAndForget SomeMethod(...) {
    await SomeIncompleteMethod();
    // .. other bits continue running in the background
 }
+```
 
 As soon as the method uses `await` against an incomplete operation, the calling
 task regains control as though it were complete; the rest of the operation continues in the background. The caller can simply `await`
