@@ -64,7 +64,7 @@ And that's it! That's all you have to do. The "catch" (there's always a catch) i
 var pending = SomeIncompleteMethodAsync(); // note no "await" here
 
 var x = await pending;
-var y = await pending; // await the **same result**
+var y = await pending; // BOOM! await the **same result**
 ```
 
 In reality, **this almost never happens**. Usually you `await` something *once*, *almost always* right away. So... yeah.
