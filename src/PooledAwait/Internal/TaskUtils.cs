@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace PooledAwait.Internal
@@ -31,5 +30,16 @@ namespace PooledAwait.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Task FromException(Exception exception) => Task.FromException(exception);
 #endif
+
+        public static class Canceled<T>
+        {
+            public static readonly Task<T> Instance = Create();
+            static Task<T> Create()
+            {
+                var source = ValueTaskCompletionSource<T>.Create();
+                source.TrySetCanceled();
+                return source.Task;
+            }
+        }
     }
 }
