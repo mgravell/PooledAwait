@@ -25,7 +25,7 @@ async ValueTask<int> SomeMethod()
 }
 ```
 
-If you've ever looked in a profiler and seen things like `System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.AsyncStateMachineBox`1`
+If you've ever looked at an application that uses `async` / `await` in a memory profiler and seen things like `System.Runtime.CompilerServices.AsyncTaskMethodBuilder``1.AsyncStateMachineBox``1`
 or `YourLib.<<SomeMethod>g__Inner|8_0>d`, then that's what I'm talking about. You can avoid this by simply using a different return type:
 
 - `PooledValueTask<T>` instead of `ValueTask<T>`
