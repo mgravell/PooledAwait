@@ -64,42 +64,41 @@ namespace PooledAwait.Test
         [InlineData(ValueTaskSourceStatus.Faulted, false)]
         public async Task TaskFirst(ValueTaskSourceStatus status, bool async)
         {
-            using (var source = LazyTaskCompletionSource.Create())
+            using var source = LazyTaskCompletionSource.Create();
+            Assert.False(source.HasTask);
+            Assert.False(source.HasSource);
+            var task = source.Task;
+            Assert.True(source.HasTask);
+            Assert.True(source.HasSource);
+            switch (status)
             {
-                Assert.False(source.HasTask);
-                Assert.False(source.HasSource);
-                var task = source.Task;
-                Assert.True(source.HasTask);
-                Assert.True(source.HasSource);
-                switch (status)
-                {
-                    case ValueTaskSourceStatus.Canceled:
-                        Assert.True(source.TrySetCanceled());
-                        Assert.False(source.TrySetCanceled());
-                        try {
-                            if (async) await task;
-                            else task.GetAwaiter().GetResult();
-                        }
-                        catch (OperationCanceledException) { }
-                        break;
-                    case ValueTaskSourceStatus.Faulted:
-                        Assert.True(source.TrySetException(new TestException()));
-                        Assert.False(source.TrySetException(new TestException()));
-                        try
-                        {
-                            if (async) await task;
-                            else task.GetAwaiter().GetResult();
-                        }
-                        catch (TestException) { }
-                        break;
-                    case ValueTaskSourceStatus.Succeeded:
-                        Assert.True(source.TrySetResult());
-                        Assert.False(source.TrySetResult());
+                case ValueTaskSourceStatus.Canceled:
+                    Assert.True(source.TrySetCanceled());
+                    Assert.False(source.TrySetCanceled());
+                    try
+                    {
                         if (async) await task;
-                        else task.Wait();
-                        Assert.NotSame(task, TaskUtils.CompletedTask);
-                        break;
-                }
+                        else task.GetAwaiter().GetResult();
+                    }
+                    catch (OperationCanceledException) { }
+                    break;
+                case ValueTaskSourceStatus.Faulted:
+                    Assert.True(source.TrySetException(new TestException()));
+                    Assert.False(source.TrySetException(new TestException()));
+                    try
+                    {
+                        if (async) await task;
+                        else task.GetAwaiter().GetResult();
+                    }
+                    catch (TestException) { }
+                    break;
+                case ValueTaskSourceStatus.Succeeded:
+                    Assert.True(source.TrySetResult());
+                    Assert.False(source.TrySetResult());
+                    if (async) await task;
+                    else task.Wait();
+                    Assert.NotSame(task, TaskUtils.CompletedTask);
+                    break;
             }
         }
 
@@ -112,53 +111,50 @@ namespace PooledAwait.Test
         [InlineData(ValueTaskSourceStatus.Faulted, false)]
         public async Task TaskLast(ValueTaskSourceStatus status, bool async)
         {
-            using (var source = LazyTaskCompletionSource.Create())
+            using var source = LazyTaskCompletionSource.Create();
+            switch (status)
             {
-                switch (status)
-                {
-                    case ValueTaskSourceStatus.Canceled:
-                        Assert.True(source.TrySetCanceled());
-                        Assert.False(source.TrySetCanceled());
-                        break;
-                    case ValueTaskSourceStatus.Faulted:
-                        Assert.True(source.TrySetException(new TestException()));
-                        Assert.False(source.TrySetException(new TestException()));
-                        break;
-                    case ValueTaskSourceStatus.Succeeded:
-                        Assert.True(source.TrySetResult());
-                        Assert.False(source.TrySetResult());
-                        break;
-                }
-                Assert.Equal(status == ValueTaskSourceStatus.Canceled, source.HasTask);
-                Assert.False(source.HasSource);
-                var task = source.Task;
-                Assert.True(source.HasTask);
-                Assert.False(source.HasSource);
-                switch (status)
-                {
-                    case ValueTaskSourceStatus.Canceled:
-                        try
-                        {
-                            if (async) await task;
-                            else task.GetAwaiter().GetResult();
-                        }
-                        catch (OperationCanceledException) { }
-                        break;
-                    case ValueTaskSourceStatus.Faulted:
-                        try
-                        {
-                            if (async) await task;
-                            else task.GetAwaiter().GetResult();
-                        }
-                        catch (TestException) { }
-                        break;
-                    case ValueTaskSourceStatus.Succeeded:
+                case ValueTaskSourceStatus.Canceled:
+                    Assert.True(source.TrySetCanceled());
+                    Assert.False(source.TrySetCanceled());
+                    break;
+                case ValueTaskSourceStatus.Faulted:
+                    Assert.True(source.TrySetException(new TestException()));
+                    Assert.False(source.TrySetException(new TestException()));
+                    break;
+                case ValueTaskSourceStatus.Succeeded:
+                    Assert.True(source.TrySetResult());
+                    Assert.False(source.TrySetResult());
+                    break;
+            }
+            Assert.Equal(status == ValueTaskSourceStatus.Canceled, source.HasTask);
+            Assert.False(source.HasSource);
+            var task = source.Task;
+            Assert.True(source.HasTask);
+            Assert.False(source.HasSource);
+            switch (status)
+            {
+                case ValueTaskSourceStatus.Canceled:
+                    try
+                    {
                         if (async) await task;
-                        else task.Wait();
-                        Assert.Same(task, TaskUtils.CompletedTask);
-                        break;
-                }
-
+                        else task.GetAwaiter().GetResult();
+                    }
+                    catch (OperationCanceledException) { }
+                    break;
+                case ValueTaskSourceStatus.Faulted:
+                    try
+                    {
+                        if (async) await task;
+                        else task.GetAwaiter().GetResult();
+                    }
+                    catch (TestException) { }
+                    break;
+                case ValueTaskSourceStatus.Succeeded:
+                    if (async) await task;
+                    else task.Wait();
+                    Assert.Same(task, TaskUtils.CompletedTask);
+                    break;
             }
         }
 
@@ -217,44 +213,42 @@ namespace PooledAwait.Test
         [InlineData(ValueTaskSourceStatus.Faulted, false)]
         public async Task TaskFirstT(ValueTaskSourceStatus status, bool async)
         {
-            using (var source = LazyTaskCompletionSource<int>.Create())
+            using var source = LazyTaskCompletionSource<int>.Create();
+            Assert.False(source.HasTask);
+            Assert.False(source.HasSource);
+            var task = source.Task;
+            Assert.True(source.HasTask);
+            Assert.True(source.HasSource);
+            switch (status)
             {
-                Assert.False(source.HasTask);
-                Assert.False(source.HasSource);
-                var task = source.Task;
-                Assert.True(source.HasTask);
-                Assert.True(source.HasSource);
-                switch (status)
-                {
-                    case ValueTaskSourceStatus.Canceled:
-                        Assert.True(source.TrySetCanceled());
-                        Assert.False(source.TrySetCanceled());
-                        try
-                        {
-                            if (async) await task;
-                            else task.GetAwaiter().GetResult();
-                        }
-                        catch (OperationCanceledException) { }
-                        break;
-                    case ValueTaskSourceStatus.Faulted:
-                        Assert.True(source.TrySetException(new TestException()));
-                        Assert.False(source.TrySetException(new TestException()));
-                        try
-                        {
-                            if (async) await task;
-                            else task.GetAwaiter().GetResult();
-                        }
-                        catch (TestException) { }
-                        break;
-                    case ValueTaskSourceStatus.Succeeded:
-                        Assert.True(source.TrySetResult(42));
-                        Assert.False(source.TrySetResult(42));
-                        if (async) Assert.Equal(42, await task);
-                        else Assert.Equal(42, task.Result);
+                case ValueTaskSourceStatus.Canceled:
+                    Assert.True(source.TrySetCanceled());
+                    Assert.False(source.TrySetCanceled());
+                    try
+                    {
+                        if (async) await task;
+                        else task.GetAwaiter().GetResult();
+                    }
+                    catch (OperationCanceledException) { }
+                    break;
+                case ValueTaskSourceStatus.Faulted:
+                    Assert.True(source.TrySetException(new TestException()));
+                    Assert.False(source.TrySetException(new TestException()));
+                    try
+                    {
+                        if (async) await task;
+                        else task.GetAwaiter().GetResult();
+                    }
+                    catch (TestException) { }
+                    break;
+                case ValueTaskSourceStatus.Succeeded:
+                    Assert.True(source.TrySetResult(42));
+                    Assert.False(source.TrySetResult(42));
+                    if (async) Assert.Equal(42, await task);
+                    else Assert.Equal(42, task.Result);
 
-                        Assert.NotSame(task, TaskUtils.CompletedTask);
-                        break;
-                }
+                    Assert.NotSame(task, TaskUtils.CompletedTask);
+                    break;
             }
         }
 
@@ -267,54 +261,51 @@ namespace PooledAwait.Test
         [InlineData(ValueTaskSourceStatus.Faulted, false)]
         public async Task TaskLastT(ValueTaskSourceStatus status, bool async)
         {
-            using (var source = LazyTaskCompletionSource<int>.Create())
+            using var source = LazyTaskCompletionSource<int>.Create();
+            switch (status)
             {
-                switch (status)
-                {
-                    case ValueTaskSourceStatus.Canceled:
-                        Assert.True(source.TrySetCanceled());
-                        Assert.False(source.TrySetCanceled());
-                        break;
-                    case ValueTaskSourceStatus.Faulted:
-                        Assert.True(source.TrySetException(new TestException()));
-                        Assert.False(source.TrySetException(new TestException()));
-                        break;
-                    case ValueTaskSourceStatus.Succeeded:
-                        Assert.True(source.TrySetResult(42));
-                        Assert.False(source.TrySetResult(42));
-                        break;
-                }
-                Assert.Equal(status == ValueTaskSourceStatus.Canceled, source.HasTask);
-                Assert.False(source.HasSource);
-                var task = source.Task;
-                Assert.True(source.HasTask);
-                Assert.False(source.HasSource);
-                switch (status)
-                {
-                    case ValueTaskSourceStatus.Canceled:
-                        try
-                        {
-                            if (async) await task;
-                            else task.GetAwaiter().GetResult();
-                        }
-                        catch (OperationCanceledException) { }
-                        break;
-                    case ValueTaskSourceStatus.Faulted:
-                        try
-                        {
-                            if (async) await task;
-                            else task.GetAwaiter().GetResult();
-                        }
-                        catch (TestException) { }
-                        break;
-                    case ValueTaskSourceStatus.Succeeded:
-                        if (async) Assert.Equal(42, await task);
-                        else Assert.Equal(42, task.Result);
+                case ValueTaskSourceStatus.Canceled:
+                    Assert.True(source.TrySetCanceled());
+                    Assert.False(source.TrySetCanceled());
+                    break;
+                case ValueTaskSourceStatus.Faulted:
+                    Assert.True(source.TrySetException(new TestException()));
+                    Assert.False(source.TrySetException(new TestException()));
+                    break;
+                case ValueTaskSourceStatus.Succeeded:
+                    Assert.True(source.TrySetResult(42));
+                    Assert.False(source.TrySetResult(42));
+                    break;
+            }
+            Assert.Equal(status == ValueTaskSourceStatus.Canceled, source.HasTask);
+            Assert.False(source.HasSource);
+            var task = source.Task;
+            Assert.True(source.HasTask);
+            Assert.False(source.HasSource);
+            switch (status)
+            {
+                case ValueTaskSourceStatus.Canceled:
+                    try
+                    {
+                        if (async) await task;
+                        else task.GetAwaiter().GetResult();
+                    }
+                    catch (OperationCanceledException) { }
+                    break;
+                case ValueTaskSourceStatus.Faulted:
+                    try
+                    {
+                        if (async) await task;
+                        else task.GetAwaiter().GetResult();
+                    }
+                    catch (TestException) { }
+                    break;
+                case ValueTaskSourceStatus.Succeeded:
+                    if (async) Assert.Equal(42, await task);
+                    else Assert.Equal(42, task.Result);
 
-                        Assert.NotSame(task, TaskUtils.CompletedTask);
-                        break;
-                }
-
+                    Assert.NotSame(task, TaskUtils.CompletedTask);
+                    break;
             }
         }
     }
