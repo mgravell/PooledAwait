@@ -15,7 +15,7 @@ namespace PooledAwait.TaskBuilders
     [EditorBrowsable(EditorBrowsableState.Never)]
     public struct PooledTaskBuilder
     {
-        private ValueTaskCompletionSource<bool> _source;
+        private ValueTaskCompletionSource<Nothing> _source;
         private Exception _exception;
 
         [Browsable(false)]
@@ -33,7 +33,7 @@ namespace PooledAwait.TaskBuilders
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetResult()
         {
-            if (_source.HasTask) _source.TrySetResult(true);
+            if (_source.HasTask) _source.TrySetResult(default);
         }
 
         [Browsable(false)]
@@ -48,7 +48,7 @@ namespace PooledAwait.TaskBuilders
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void EnsureHasTask()
         {
-            if (!_source.HasTask) _source = ValueTaskCompletionSource<bool>.Create();
+            if (!_source.HasTask) _source = ValueTaskCompletionSource<Nothing>.Create();
         }
 
         [Browsable(false)]

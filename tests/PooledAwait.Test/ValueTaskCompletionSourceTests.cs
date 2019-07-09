@@ -14,7 +14,7 @@ namespace PooledAwait.Test
             Assert.False(source.HasTask);
             Assert.False(source.IsOptimized);
 
-            Assert.Throws<NullReferenceException>(() => source.TrySetResult(42));
+            Assert.False(source.TrySetResult(42));
         }
 
         [Theory]

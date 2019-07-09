@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace PooledAwait.Internal
 {
@@ -16,5 +17,8 @@ namespace PooledAwait.Internal
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         internal static void ThrowArgumentNullException(string paramName) => throw new ArgumentNullException(paramName);
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal static void ThrowTaskCanceledException() => throw new TaskCanceledException();
     }
 }

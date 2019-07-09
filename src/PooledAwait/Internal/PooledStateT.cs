@@ -5,7 +5,7 @@ using System.Threading.Tasks.Sources;
 
 namespace PooledAwait.Internal
 {
-    internal sealed class PooledState<T> : IValueTaskSource<T>
+    internal sealed class PooledState<T> : IValueTaskSource<T>, IValueTaskSource
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static PooledState<T> Create(out short token)
@@ -21,16 +21,10 @@ namespace PooledAwait.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool IsValid(short token) => _source.Version == token;
 
-        public PooledValueTask<T> PooledValueTask
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => new PooledValueTask<T>(this, _source.Version);
-        }
-
         private ManualResetValueTaskSourceCore<T> _source; // needs to be mutable
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        T IValueTaskSource<T>.GetResult(short token)
+        public T GetResult(short token)
         {
             // we only support getting the result once; doing this recycles the source and advances the token
 
@@ -39,7 +33,15 @@ namespace PooledAwait.Internal
                 var status = _source.GetStatus(token); // do this *outside* the try/finally
                 try // so that we don't increment the counter if someone asks for the wrong value
                 {
-                    if (status == ValueTaskSourceStatus.Pending) Monitor.Wait(SyncLock);
+                    switch(status)
+                    {
+                        case ValueTaskSourceStatus.Canceled:
+                            ThrowHelper.ThrowTaskCanceledException();
+                            break;
+                        case ValueTaskSourceStatus.Pending:
+                            Monitor.Wait(SyncLock);
+                            break;
+                    }
                     return _source.GetResult(token);
                 }
                 finally
@@ -50,6 +52,9 @@ namespace PooledAwait.Internal
                 }
             }
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        void IValueTaskSource.GetResult(short token) => GetResult(token);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void SignalResult(short token)
@@ -67,7 +72,7 @@ namespace PooledAwait.Internal
         public ValueTaskSourceStatus GetStatus(short token) => _source.GetStatus(token);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        void IValueTaskSource<T>.OnCompleted(Action<object?> continuation, object? state, short token, ValueTaskSourceOnCompletedFlags flags)
+        public void OnCompleted(Action<object?> continuation, object? state, short token, ValueTaskSourceOnCompletedFlags flags)
             => _source.OnCompleted(continuation, state, token, flags);
 
         private object SyncLock
@@ -110,5 +115,9 @@ namespace PooledAwait.Internal
             }
             return false;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TrySetCanceled(short token)
+            => TrySetException(TaskUtils.SharedTaskCanceledException, token);
     }
 }

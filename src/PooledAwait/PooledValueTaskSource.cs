@@ -16,7 +16,22 @@ namespace PooledAwait
         public ValueTask Task
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => new PooledValueTask(_source, _token).AsValueTask();
+            get => _source == null ? default : new ValueTask(_source, _token);
+        }
+
+        /// <summary>
+        /// Indicates whether this instance is well-defined against a value task instance
+        /// </summary>
+        public bool HasTask
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _source != null;
+        }
+
+        internal PooledValueTask PooledTask
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => new PooledValueTask(_source, _token);
         }
 
         /// <summary>
@@ -25,15 +40,15 @@ namespace PooledAwait
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static PooledValueTaskSource Create()
         {
-            var source = PooledState.Create(out var token);
+            var source = PooledState<Nothing>.Create(out var token);
             return new PooledValueTaskSource(source, token);
         }
 
-        private readonly PooledState _source;
+        private readonly PooledState<Nothing> _source;
         private readonly short _token;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal PooledValueTaskSource(PooledState source, short token)
+        internal PooledValueTaskSource(PooledState<Nothing> source, short token)
         {
             _source = source;
             _token = token;
@@ -52,12 +67,18 @@ namespace PooledAwait
         /// Set the result of the operation
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TrySetResult() => _source != null && _source.TrySetResult(_token);
+        public bool TrySetResult() => _source != null && _source.TrySetResult(default, _token);
 
         /// <summary>
         /// Set the result of the operation
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TrySetException(Exception error) => _source != null && _source.TrySetException(error, _token);
+
+        /// <summary>
+        /// Set the result of the operation
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TrySetCanceled() => _source != null && _source.TrySetCanceled(_token);
     }
 }

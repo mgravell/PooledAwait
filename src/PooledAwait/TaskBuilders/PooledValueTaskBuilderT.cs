@@ -13,9 +13,7 @@ namespace PooledAwait.TaskBuilders
     [EditorBrowsable(EditorBrowsableState.Never)]
     public struct PooledValueTaskBuilder<T>
     {
-        private PooledState<T>? _state;
-        private short _token;
-        private T _result;
+        private PooledValueTaskSource<T> _source;
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -32,8 +30,8 @@ namespace PooledAwait.TaskBuilders
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetResult(T result)
         {
-            _state?.TrySetResult(result, _token);
-            _result = result;
+            if (_source.HasTask) _source.TrySetResult(result);
+            else _source = new PooledValueTaskSource<T>(result);
         }
 
         [Browsable(false)]
@@ -41,20 +39,22 @@ namespace PooledAwait.TaskBuilders
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetException(Exception exception)
         {
-            EnsureState().TrySetException(exception, _token);
+            EnsureHasTask();
+            _source.TrySetException(exception);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private PooledState<T> EnsureState() => _state ?? CreateState();
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private PooledState<T> CreateState() => _state ?? (_state = PooledState<T>.Create(out _token));
+        private void EnsureHasTask()
+        {
+            if (!_source.HasTask) _source = PooledValueTaskSource<T>.Create();
+        }
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public PooledValueTask<T> Task
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _state == null ? new PooledValueTask<T>(_result) : _state.PooledValueTask;
+            get => _source.PooledTask;
         }
 
         [Browsable(false)]
@@ -65,7 +65,7 @@ namespace PooledAwait.TaskBuilders
             where TAwaiter : INotifyCompletion
             where TStateMachine : IAsyncStateMachine
         {
-            EnsureState();
+            EnsureHasTask();
             StateMachineBox<TStateMachine>.AwaitOnCompleted(ref awaiter, ref stateMachine);
         }
 
@@ -77,7 +77,7 @@ namespace PooledAwait.TaskBuilders
             where TAwaiter : ICriticalNotifyCompletion
             where TStateMachine : IAsyncStateMachine
         {
-            EnsureState();
+            EnsureHasTask();
             StateMachineBox<TStateMachine>.AwaitUnsafeOnCompleted(ref awaiter, ref stateMachine);
         }
 

@@ -1,7 +1,6 @@
-﻿using PooledAwait.Internal;
-using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Sources;
 
 namespace PooledAwait
 {
@@ -11,11 +10,11 @@ namespace PooledAwait
     [AsyncMethodBuilder(typeof(TaskBuilders.PooledValueTaskBuilder))]
     public readonly struct PooledValueTask
     {
-        private readonly PooledState _source;
+        private readonly IValueTaskSource _source;
         private readonly short _token;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal PooledValueTask(PooledState source, short token)
+        internal PooledValueTask(IValueTaskSource source, short token)
         {
             _source = source;
             _token = token;

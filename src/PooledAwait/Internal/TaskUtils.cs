@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PooledAwait.Internal
@@ -7,6 +8,7 @@ namespace PooledAwait.Internal
     // NET45 lacks some useful Task APIs; shim over them
     internal static class TaskUtils
     {
+        public static readonly TaskCanceledException SharedTaskCanceledException = new TaskCanceledException();
 #if NET45
         public static readonly Task CompletedTask = Task.FromResult(true);
 

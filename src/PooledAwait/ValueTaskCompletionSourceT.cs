@@ -19,6 +19,7 @@ namespace PooledAwait
 #if !NETSTANDARD1_3
         private static readonly Func<Task<T>, Exception, bool>? s_TrySetException = TryCreate<Exception>(nameof(TrySetException));
         private static readonly Func<Task<T>, T, bool>? s_TrySetResult = TryCreate<T>(nameof(TrySetResult));
+        private static readonly Func<Task<T>, CancellationToken, bool>? s_TrySetCanceled = TryCreate<CancellationToken>(nameof(TrySetCanceled));
         private static readonly bool s_Optimized = ValidateOptimized();
 #endif
         private readonly object _state;
@@ -96,7 +97,28 @@ namespace PooledAwait
                 return result;
             }
 #endif
-            return ((TaskCompletionSource<T>)_state).TrySetException(exception);
+            return _state != null && ((TaskCompletionSource<T>)_state).TrySetException(exception);
+        }
+
+        /// <summary>
+        /// Set the outcome of the operation
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TrySetCanceled(CancellationToken cancellationToken = default)
+        {
+#if !NETSTANDARD1_3
+            if (_state is Task<T> task)
+            {
+                var result = s_TrySetCanceled!(task, cancellationToken);
+                if (!result && !task.IsCompleted) SpinUntilCompleted(task);
+                return result;
+            }
+#endif
+            return _state != null && ((TaskCompletionSource<T>)_state).TrySetCanceled(
+#if !NET45
+                cancellationToken
+#endif
+                );
         }
 
         /// <summary>
@@ -113,7 +135,7 @@ namespace PooledAwait
                 return result;
             }
 #endif
-            return ((TaskCompletionSource<T>)_state).TrySetResult(value);
+            return _state != null && ((TaskCompletionSource<T>)_state).TrySetResult(value);
         }
 
 #if !NETSTANDARD1_3
