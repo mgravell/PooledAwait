@@ -76,7 +76,7 @@ namespace PooledAwait
         {
             if (value != null)
             {
-                if (ts_local != null)
+                if (ts_local == null)
                 {
                     ts_local = value;
                     return;
