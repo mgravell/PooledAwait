@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using Xunit;
-using System.Linq;
+﻿using PooledAwait.Internal;
 using PooledAwait.TaskBuilders;
-using PooledAwait.Internal;
+using System;
+using Xunit;
 
 namespace PooledAwait.Test
 {
@@ -23,6 +21,8 @@ namespace PooledAwait.Test
         [InlineData(typeof(PooledTaskBuilder<>))]
         [InlineData(typeof(PooledValueTaskBuilder))]
         [InlineData(typeof(PooledValueTaskBuilder<>))]
+        [InlineData(typeof(LazyTaskCompletionSource))]
+        [InlineData(typeof(LazyTaskCompletionSource<>))]
         [InlineData(typeof(Nothing))]
         [InlineData(typeof(Counters.Counter))]
         public void ValueTypesOverrideAllMethods(Type type)

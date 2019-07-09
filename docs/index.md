@@ -9,6 +9,7 @@ Low-allocation utilies for writing `async` methods, and related tools
 - [`FireAndForget`](#fireandforget)
 - [`ValueTaskCompletionSource<T>`](#valuetaskcompletionsourcet)
 - [`PooledValueTaskSource / PooledValueTaskSource<T>`](#pooledvaluetasksource--pooledvaluetasksourcet)
+- [`LazyTaskCompletionSource / LazyTaskCompletionSource<T>`](#lazytaskcompletionsource--lazytaskcompletionsource)
 - [`Pool`](#pool)
 
 ---
@@ -134,6 +135,23 @@ source.TrySetResult(42); // etc
 
 ---
 
+## `LazyTaskCompletionSource / LazyTaskCompletionSource<T>`
+
+Sometimes, you have an API where you *aren't sure* whether someone is subscribing to the `Task`/`Task<T>` results - for example
+you have properties like:
+
+``` c#
+public Task SomeStepCompleted { get; }
+```
+
+It would be a shame to allocate a `Task` for this *just in case*, so `LazyTaskCompletionSource[<T>]` allows you to *rent* state
+that can manage *lazily* creating a task. If the `.Task` is read before the value is set, a *source* is used to provide a
+pending task; if the result gets set before the value is read, then some optimizations may be possible (`Task.CompletedTask`, etc).
+And if the `.Task` is never queried: no task or source is allocated. These types are disposable; disposing them releases any
+rented state for re-use.
+
+---
+
 ## `Pool`
 
 Ever need a light-weight basic pool of objects? That's this. Nothing fancy. The first API is a simple get/put:
@@ -173,5 +191,8 @@ then later:
 ```
 
 It is the caller's responsibility to only access the state once.
+
+The pool is global (`static`) and pretty modest in size. You can control it *a bit* by adding `[PoolSize(...)]` to the custom
+classes and value-types that you use.
 
 

@@ -42,7 +42,7 @@ namespace PooledAwait
         public static T UnboxAndReturn<T>(object obj) where T : struct
             => ItemBox<T>.UnboxAndRecycle(obj);
 
-        private sealed class ItemBox<T> where T : struct
+        internal sealed class ItemBox<T> where T : struct
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private ItemBox() => Counters.ItemBoxAllocated.Increment();

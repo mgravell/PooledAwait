@@ -10,10 +10,41 @@ namespace PooledAwait
     /// </summary>
     internal static class Pool<T> where T : class
     {
+        internal static int Size => s_global.Length;
+
         [ThreadStatic]
         private static T? ts_local;
 
-        private static readonly T?[] s_global = new T[16];
+        private static readonly T?[] s_global = CreatePool();
+
+        static T[] CreatePool()
+        {
+            const int DefaultSize = 16;
+            int size = DefaultSize;
+
+#if !NETSTANDARD1_3
+            const int MinSize = 0, MaxSize = 256;
+
+            var type = typeof(T);
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Pool.ItemBox<>))
+            {   // if doing a boxed T, tell us about the T - not the box
+                type = type.GetGenericArguments()[0];
+            }
+
+            var attrib = (PoolSizeAttribute)Attribute.GetCustomAttribute(type, typeof(PoolSizeAttribute), true);
+            if (attrib != null)
+            {
+                if (attrib.Size < MinSize) size = MinSize;
+                else if (attrib.Size > MaxSize) size = MaxSize;
+                else size = attrib.Size;
+            }
+#endif
+
+#if !NET45
+            if (size == 0) return Array.Empty<T>();
+#endif
+            return new T[size];
+        }
 
         /// <summary>
         /// Gets an instance from the pool if possible

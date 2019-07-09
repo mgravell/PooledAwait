@@ -47,8 +47,11 @@ namespace PooledAwait.Internal
                 finally
                 {
                     _source.Reset();
-                    Pool<PooledState<T>>.TryPut(this);
-                    Counters.PooledStateRecycled.Increment();
+                    if (_source.Version != TaskUtils.InitialTaskSourceVersion)
+                    {
+                        Pool<PooledState<T>>.TryPut(this);
+                        Counters.PooledStateRecycled.Increment();
+                    }
                 }
             }
         }

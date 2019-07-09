@@ -3,6 +3,7 @@ using Xunit;
 
 namespace PooledAwait.Test
 {
+    [Collection("Sequential")]
     public class BoxTests
     {
         [Fact]
@@ -30,5 +31,35 @@ namespace PooledAwait.Test
             Assert.Equal(0, Counters.TotalAllocations);
 #endif
         }
+
+        [Fact]
+        public void DefaultPoolSize() => Assert.Equal(16, Pool<Default>.Size);
+
+        [Fact]
+        public void CusomSizeClass() => Assert.Equal(42, Pool<CustomClass>.Size);
+
+        [Fact]
+        public void MinPoolSize() => Assert.Equal(0, Pool<MinClass>.Size);
+
+        [Fact]
+        public void MaxPoolSize() => Assert.Equal(256, Pool<MaxClass>.Size);
+
+        [Fact]
+        public void CusomStructBoxed() => Assert.Equal(14, Pool<Pool.ItemBox<CustomStruct>>.Size);
+
+        class Default { }
+
+        [PoolSize(42)]
+        class CustomClass { }
+
+        [PoolSize(14)]
+        struct CustomStruct { }
+
+        [PoolSize(-12)]
+        class MinClass { }
+
+
+        [PoolSize(12314114)]
+        class MaxClass { }
     }
 }
