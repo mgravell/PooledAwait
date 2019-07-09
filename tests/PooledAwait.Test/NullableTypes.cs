@@ -1,6 +1,9 @@
 ﻿using PooledAwait.Internal;
 using PooledAwait.TaskBuilders;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using Xunit;
 
 namespace PooledAwait.Test
@@ -30,7 +33,19 @@ namespace PooledAwait.Test
             Assert.Same(type, type.GetMethod(nameof(ToString), Type.EmptyTypes).DeclaringType);
             Assert.Same(type, type.GetMethod(nameof(GetHashCode), Type.EmptyTypes).DeclaringType);
             Assert.Same(type, type.GetMethod(nameof(Equals), new Type[] { typeof(object) }).DeclaringType);
+
+            Assert.Equal(!s_allowedMutable.Contains(type), Attribute.IsDefined(type, typeof(IsReadOnlyAttribute)));
         }
+
+        static readonly Type[] s_allowedMutable =
+        {
+            typeof(Counters.Counter),
+            typeof(FireAndForgetBuilder),
+            typeof(PooledTaskBuilder),
+            typeof(PooledTaskBuilder<>),
+            typeof(PooledValueTaskBuilder),
+            typeof(PooledValueTaskBuilder<>),
+        };
 
     }
 }

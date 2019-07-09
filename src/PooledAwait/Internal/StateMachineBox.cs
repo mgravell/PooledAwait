@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace PooledAwait.Internal
 {
@@ -10,67 +11,61 @@ namespace PooledAwait.Internal
 #endif
             where TStateMachine : IAsyncStateMachine
     {
+        private readonly Action _execute;
         private TStateMachine _stateMachine;
-        private Action? _onCompleted;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private StateMachineBox()
         {
             _stateMachine = default!;
+            _execute = Execute;
             Counters.StateMachineBoxAllocated.Increment();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static StateMachineBox<TStateMachine> Create(TStateMachine stateMachine)
+        private static StateMachineBox<TStateMachine> Create(ref TStateMachine stateMachine)
         {
             var box = Pool<StateMachineBox<TStateMachine>>.TryGet() ?? new StateMachineBox<TStateMachine>();
             box._stateMachine = stateMachine;
             return box;
         }
 
-        public Action OnCompleted => _onCompleted ?? CreateOnCompleted();
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private Action CreateOnCompleted() => _onCompleted = Execute;
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AwaitOnCompleted<TAwaiter>(
             ref TAwaiter awaiter, ref TStateMachine stateMachine)
             where TAwaiter : INotifyCompletion
         {
-            var box = Create(stateMachine);
+            var box = Create(ref stateMachine);
             if (typeof(TAwaiter) == typeof(YieldAwaitable.YieldAwaiter))
             {
-                var syncContetx = SynchronizationContext.Current;
-                if (syncContetx == null)
-                {
-                    // respect the fact that this isn't "unsafe"
-                    ThreadPool.QueueUserWorkItem(s_WaitCallback, box);
-                }
-                else
-                {
-                    syncContetx.Post(s_SendOrPostCallback, box);
-                }
+                Yield(box, true);
             }
             else
             {
-                awaiter.OnCompleted(box.OnCompleted);
+                awaiter.OnCompleted(box._execute);
             }
         }
-
-        static readonly SendOrPostCallback s_SendOrPostCallback = state => ((StateMachineBox<TStateMachine>)state).Execute();
-        static readonly WaitCallback s_WaitCallback = state => ((StateMachineBox<TStateMachine>)state).Execute();
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void AwaitUnsafeOnCompleted<TAwaiter>(
-            ref TAwaiter awaiter, ref TStateMachine stateMachine)
-            where TAwaiter : ICriticalNotifyCompletion
+        private static void Yield(StateMachineBox<TStateMachine> box, bool flowContext)
         {
-            var box = Create(stateMachine);
-            if (typeof(TAwaiter) == typeof(YieldAwaitable.YieldAwaiter))
+            // heavily inspired by YieldAwaitable.QueueContinuation
+
+            var syncContext = SynchronizationContext.Current;
+            if (syncContext != null && syncContext.GetType() != typeof(SynchronizationContext))
             {
-                var syncContetx = SynchronizationContext.Current;
-                if (syncContetx == null)
+                syncContext.Post(s_SendOrPostCallback, box);
+            }
+            else
+            {
+                var taskScheduler = TaskScheduler.Current;
+                if (!ReferenceEquals(taskScheduler, TaskScheduler.Default))
+                {
+                    Task.Factory.StartNew(box._execute, default, TaskCreationOptions.PreferFairness, taskScheduler);
+                }
+                else if (flowContext)
+                {
+                    ThreadPool.QueueUserWorkItem(s_WaitCallback, box);
+                }
+                else
                 {
 #if PLAT_THREADPOOLWORKITEM
                     ThreadPool.UnsafeQueueUserWorkItem(box, false);
@@ -80,14 +75,26 @@ namespace PooledAwait.Internal
                     ThreadPool.UnsafeQueueUserWorkItem(s_WaitCallback, box);
 #endif
                 }
-                else
-                {
-                    syncContetx.Post(s_SendOrPostCallback, box);
-                }
+            }
+        }
+
+        static readonly SendOrPostCallback s_SendOrPostCallback = state => ((StateMachineBox<TStateMachine>)state).Execute();
+        static readonly WaitCallback s_WaitCallback = state => ((StateMachineBox<TStateMachine>)state).Execute();
+        static readonly Action<object> s_ActionObject = state => ((StateMachineBox<TStateMachine>)state).Execute();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AwaitUnsafeOnCompleted<TAwaiter>(
+            ref TAwaiter awaiter, ref TStateMachine stateMachine)
+            where TAwaiter : ICriticalNotifyCompletion
+        {
+            var box = Create(ref stateMachine);
+            if (typeof(TAwaiter) == typeof(YieldAwaitable.YieldAwaiter))
+            {
+                Yield(box, false);
             }
             else
             {
-                awaiter.UnsafeOnCompleted(box.OnCompleted);
+                awaiter.UnsafeOnCompleted(box._execute);
             }
         }
 
