@@ -5,9 +5,7 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
-    <Version>0.2.1</Version>
     <Authors>mgravell</Authors>
-
 
     <Copyright>2019 Marc Gravell</Copyright>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
