@@ -2,6 +2,16 @@
 
 Low-allocation utilies for writing `async` methods, and related tools
 
+### Contents
+
+- [`PooledValueTask` / `PooledValueTask<T>`](#pooledvaluetask--pooledvaluetaskt)
+- [`FireAndForget`](#fireandforget)
+- [`ValueTaskCompletionSource<T>`](#valuetaskcompletionsourcet)
+- [`PooledValueTaskSource / PooledValueTaskSource<T>`](#pooledvaluetasksource--pooledvaluetasksourcet)
+- [`Pool`](#pool)
+
+---
+
 ## `PooledValueTask` / `PooledValueTask<T>`
 
 These are the main tools of the library; their purpose is to remove the boxing of the async state-machine and builder that happens when a method
@@ -104,6 +114,8 @@ source.TrySetResult(42); // etc
 The main difference here is that you now have a `struct` instead of a `class`. If you want to test whether an instance is a *real* value
 (as opposed to the `default`), check `.HasTask`.
 
+---
+
 ## `PooledValueTaskSource` / `PooledValueTaskSource<T>`
 
 These again work like `TaskCompletionSource<T>`, but a: for `ValueType[<T>]`, and b: with the same zero-allocation features that
@@ -114,6 +126,8 @@ var source = PooledValueTaskSource<int>.Create();
 // ...
 source.TrySetResult(42); // etc
 ```
+
+---
 
 ## `Pool`
 
