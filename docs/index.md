@@ -73,7 +73,7 @@ In reality, **this almost never happens**. Usually you `await` something *once*,
 
 ## `PooledTask` / `PooledTask<T>`
 
-These work very similarly to `PooledTask[<T>]`, but for the `Task[<T>]` API. It can't be *quite* as frugal, as in most cases a `Task[<T>]`
+These work very similarly to `PooledValueTask[<T>]`, but for the `Task[<T>]` API. It can't be *quite* as frugal, as in most cases a `Task[<T>]`
 will still need to be allocated (unless it is the non-generic `PooledTask` signature, and the operation completes synchronously), but it
 still avoids the state-machine box etc. Note that this API **is not** impacted by the "you can only await it once" change (you can
 await these as many times as you like - they are, after all, `Task[<T>]`), but again: *this is used incredibly rarely anyway*.
