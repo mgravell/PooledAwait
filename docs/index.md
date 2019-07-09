@@ -5,6 +5,7 @@ Low-allocation utilies for writing `async` methods, and related tools
 ### Contents
 
 - [`PooledValueTask` / `PooledValueTask<T>`](#pooledvaluetask--pooledvaluetaskt)
+- [`PooledTask` / `PooledTask<T>`](#pooledtask--pooledtaskt)
 - [`FireAndForget`](#fireandforget)
 - [`ValueTaskCompletionSource<T>`](#valuetaskcompletionsourcet)
 - [`PooledValueTaskSource / PooledValueTaskSource<T>`](#pooledvaluetasksource--pooledvaluetasksourcet)
@@ -30,8 +31,6 @@ or `YourLib.<<SomeMethod>g__Inner|8_0>d`, then that's what I'm talking about. Yo
 
 - `PooledValueTask<T>` instead of `ValueTask<T>`
 - `PooledValueTask` instead of `ValueTask`
-- `PooledTask<T>` instead of `Task<T>` (this still has to allocate a `Task<T>`)
-- `PooledTask` instead of `Task` (this still has to allocate a `Task` if the operation faults or doesn't complete synchronously)
 
 For `private` / `internal` methods, you can probably just *change the return type directly*:
 
@@ -59,8 +58,7 @@ private ValueTask<int> SomeMethod() // not marked async
 
 (all of the `Pooled*` types have `implicit` conversion operators to their more well-recognized brethren).
 
-And that's it! That's all you have to do. The "catch" (there's always a catch) is that the following **no longer works** for
-the `ValueTask[<T>]` versions (it stays working for the `Task[<T>]` versions):
+And that's it! That's all you have to do. The "catch" (there's always a catch) is that awaiting the same pending operation *more than once* **no longer works**:
 
 ``` c#
 var pending = SomeIncompleteMethodAsync(); // note no "await" here
@@ -72,6 +70,12 @@ var y = await pending; // await the **same result**
 In reality, **this almost never happens**. Usually you `await` something *once*, *almost always* right away. So... yeah.
 
 ---
+
+## `PooledTask` / `PooledTask<T>`
+
+These work very similarly to `PooledTask[<T>]`, but for the `Task[<T>]` API. It can't be *quite* as frugal, as in most cases a `Task[<T>]`
+will still need to be allocated (unless it is the non-generic `PooledTask` signature, and the operation completes synchronously), but it
+still avoids the state-machine box etc.
 
 ## `FireAndForget`
 

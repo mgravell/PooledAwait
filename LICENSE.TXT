@@ -24,4 +24,5 @@ SOFTWARE.
 
 Additional licenses:
 
-ManualResetValueTaskSourceCore is Copyright (c) .NET Foundation and Contributors, and is made available under The MIT License
+ManualResetValueTaskSourceCore is Copyright (c) .NET Foundation and Contributors,
+and is made available under The MIT License
