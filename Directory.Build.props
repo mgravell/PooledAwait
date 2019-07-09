@@ -6,7 +6,7 @@
     <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
     <Authors>mgravell</Authors>
-
+    <NoWarn>NU5104;NU5125</NoWarn>
     <Copyright>2019 Marc Gravell</Copyright>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     

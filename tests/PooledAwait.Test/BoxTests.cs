@@ -8,7 +8,7 @@ namespace PooledAwait.Test
         [Fact]
         public void BoxUnboxWorks()
         {
-            object Create()
+            static object Create()
             {
                 int id = 42;
                 string name = "abc";
@@ -16,7 +16,7 @@ namespace PooledAwait.Test
                 return obj;
             }
 
-            void Consume(object obj)
+            static void Consume(object obj)
             {
                 (var id, var name) = Pool.UnboxAndReturn<(int, string)>(obj);
                 Assert.Equal(42, id);
