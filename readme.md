@@ -61,28 +61,31 @@ In particular, notice:
 - no performance degredation; just lower allocations
 
 ``` txt
-| Method |  Job | Runtime |   Categories |     Mean |     Error |    StdDev |  Gen 0 |  Gen 1 | Gen 2 | Allocated |
-|------- |----- |-------- |------------- |---------:|----------:|----------:|-------:|-------:|------:|----------:|
-|   .NET |  Clr |     Clr |      Task<T> | 2.377 us | 0.0570 us | 0.0560 us | 0.0508 | 0.0039 |     - |     344 B |
-| Pooled |  Clr |     Clr |      Task<T> | 2.343 us | 0.0388 us | 0.0344 us | 0.0273 | 0.0039 |     - |     182 B |
-|   .NET | Core |    Core |      Task<T> | 1.726 us | 0.0217 us | 0.0203 us | 0.0176 |      - |     - |     120 B |
-| Pooled | Core |    Core |      Task<T> | 1.644 us | 0.0137 us | 0.0128 us | 0.0098 |      - |     - |      72 B |
-|        |      |         |              |          |           |           |        |        |       |           |
-|   .NET |  Clr |     Clr |         Task | 2.386 us | 0.0464 us | 0.0749 us | 0.0508 | 0.0039 |     - |     336 B |
-| Pooled |  Clr |     Clr |         Task | 2.426 us | 0.0547 us | 0.1028 us | 0.0273 | 0.0039 |     - |     182 B |
-|   .NET | Core |    Core |         Task | 1.718 us | 0.0146 us | 0.0137 us | 0.0176 |      - |     - |     112 B |
-| Pooled | Core |    Core |         Task | 1.614 us | 0.0072 us | 0.0064 us | 0.0098 |      - |     - |      72 B |
-|        |      |         |              |          |           |           |        |        |       |           |
-|   .NET |  Clr |     Clr | ValueTask<T> | 2.358 us | 0.0468 us | 0.0460 us | 0.0508 | 0.0039 |     - |     352 B |
-| Pooled |  Clr |     Clr | ValueTask<T> | 2.303 us | 0.0477 us | 0.0422 us | 0.0117 | 0.0039 |     - |     101 B |
-|   .NET | Core |    Core | ValueTask<T> | 1.736 us | 0.0215 us | 0.0201 us | 0.0195 |      - |     - |     128 B |
-| Pooled | Core |    Core | ValueTask<T> | 1.610 us | 0.0101 us | 0.0094 us |      - |      - |     - |         - |
-|        |      |         |              |          |           |           |        |        |       |           |
-|   .NET |  Clr |     Clr |    ValueTask | 2.347 us | 0.0449 us | 0.0461 us | 0.0508 | 0.0039 |     - |     344 B |
-| Pooled |  Clr |     Clr |    ValueTask | 2.333 us | 0.0452 us | 0.0465 us | 0.0117 | 0.0039 |     - |     100 B |
-|   .NET | Core |    Core |    ValueTask | 1.655 us | 0.0092 us | 0.0086 us | 0.0176 |      - |     - |     120 B |
-| Pooled | Core |    Core |    ValueTask | 1.638 us | 0.0100 us | 0.0093 us |      - |      - |     - |         - |
+| Method |  Job | Runtime |   Categories |     Mean |     Error |    StdDev |  Gen 0 |  Gen 1 |  Gen 2 | Allocated |
+|------- |----- |-------- |------------- |---------:|----------:|----------:|-------:|-------:|-------:|----------:|
+|   .NET |  Clr |     Clr |      Task<T> | 2.159 us | 0.0427 us | 0.0474 us | 0.0508 | 0.0039 |      - |     344 B |
+| Pooled |  Clr |     Clr |      Task<T> | 2.037 us | 0.0246 us | 0.0230 us | 0.0273 | 0.0039 |      - |     182 B |
+|   .NET | Core |    Core |      Task<T> | 1.397 us | 0.0024 us | 0.0022 us | 0.0176 |      - |      - |     120 B |
+| Pooled | Core |    Core |      Task<T> | 1.349 us | 0.0058 us | 0.0054 us | 0.0098 |      - |      - |      72 B |
+|        |      |         |              |          |           |           |        |        |        |           |
+|   .NET |  Clr |     Clr |         Task | 2.065 us | 0.0200 us | 0.0167 us | 0.0508 | 0.0039 |      - |     336 B |
+| Pooled |  Clr |     Clr |         Task | 1.979 us | 0.0179 us | 0.0167 us | 0.0273 | 0.0039 |      - |     182 B |
+|   .NET | Core |    Core |         Task | 1.390 us | 0.0159 us | 0.0149 us | 0.0176 |      - |      - |     112 B |
+| Pooled | Core |    Core |         Task | 1.361 us | 0.0055 us | 0.0051 us | 0.0098 |      - |      - |      72 B |
+|        |      |         |              |          |           |           |        |        |        |           |
+|   .NET |  Clr |     Clr | ValueTask<T> | 2.087 us | 0.0403 us | 0.0431 us | 0.0547 | 0.0078 | 0.0039 |     352 B |
+| Pooled |  Clr |     Clr | ValueTask<T> | 1.924 us | 0.0248 us | 0.0220 us | 0.0137 | 0.0020 |      - |     100 B |
+|   .NET | Core |    Core | ValueTask<T> | 1.405 us | 0.0078 us | 0.0073 us | 0.0195 |      - |      - |     128 B |
+| Pooled | Core |    Core | ValueTask<T> | 1.374 us | 0.0116 us | 0.0109 us |      - |      - |      - |         - |
+|        |      |         |              |          |           |           |        |        |        |           |
+|   .NET |  Clr |     Clr |    ValueTask | 2.056 us | 0.0206 us | 0.0183 us | 0.0508 | 0.0039 |      - |     344 B |
+| Pooled |  Clr |     Clr |    ValueTask | 1.948 us | 0.0388 us | 0.0416 us | 0.0137 | 0.0020 |      - |     100 B |
+|   .NET | Core |    Core |    ValueTask | 1.408 us | 0.0140 us | 0.0117 us | 0.0176 |      - |      - |     120 B |
+| Pooled | Core |    Core |    ValueTask | 1.366 us | 0.0039 us | 0.0034 us |      - |      - |      - |         - |
 ```
+
+and note that *most* of the remaining allocations are actually the work-queue internals of `Task.Yield()` - we've removed
+virtually all of the unnecessary overheads that came from the `async` machinery.
 
 The tests do the exact same thing; the only thing that changes is the return type, i.e. whether it is `async Task<int>`, `async ValueTask<int>`, `async PooledTask<int>` or `async PooledValueTask<int>`.
 All of them have the same threading/execution-context/sync-context semantics; there's no cheating going on.
