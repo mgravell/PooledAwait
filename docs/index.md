@@ -9,7 +9,7 @@ Low-allocation utilies for writing `async` methods, and related tools
 - [`FireAndForget`](#fireandforget)
 - [`ValueTaskCompletionSource<T>`](#valuetaskcompletionsourcet)
 - [`PooledValueTaskSource / PooledValueTaskSource<T>`](#pooledvaluetasksource--pooledvaluetasksourcet)
-- [`LazyTaskCompletionSource / LazyTaskCompletionSource<T>`](#lazytaskcompletionsource--lazytaskcompletionsource)
+- [`LazyTaskCompletionSource / LazyTaskCompletionSource<T>`](#lazytaskcompletionsource--lazytaskcompletionsourcet)
 - [`Pool`](#pool)
 
 ---
