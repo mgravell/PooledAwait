@@ -28,7 +28,8 @@ namespace PooledAwait.Internal
 
         public static long TotalAllocations =>
             PooledStateAllocated.Value + StateMachineBoxAllocated.Value
-            + ItemBoxAllocated.Value + TaskAllocated.Value;
+            + ItemBoxAllocated.Value + TaskAllocated.Value
+            + SetStateMachine.Value; // SetStateMachine usually means a boxed value
 
         internal static void Reset()
         {

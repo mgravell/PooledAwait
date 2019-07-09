@@ -21,7 +21,7 @@ namespace PooledAwait.Test
             {
                 if(isAsync)
                 {
-                    await Task.Yield();
+                    await Task.Delay(50);
                     await Task.Yield();
                 }
             }
@@ -46,7 +46,7 @@ namespace PooledAwait.Test
             {
                 if (isAsync)
                 {
-                    await Task.Yield();
+                    await Task.Delay(50);
                     await Task.Yield();
                 }
             }
@@ -70,7 +70,7 @@ namespace PooledAwait.Test
             {
                 if (isAsync)
                 {
-                    await Task.Yield();
+                    await Task.Delay(50);
                     await Task.Yield();
                 }
             }
@@ -86,7 +86,8 @@ namespace PooledAwait.Test
             await pending;
             Counters.Reset();
             Assert.Equal(42, await Impl());
-            Assert.Equal(0, Counters.TotalAllocations);
+            Assert.Equal(isAsync ? 1 : 0, Counters.TotalAllocations);
+            Assert.Equal(isAsync ? 1 : 0, Counters.TaskAllocated.Value);
             Assert.Equal(0, Counters.PooledStateRecycled.Value);
             Assert.Equal(isAsync ? 2 : 0, Counters.StateMachineBoxRecycled.Value);
 
@@ -94,7 +95,7 @@ namespace PooledAwait.Test
             {
                 if (isAsync)
                 {
-                    await Task.Yield();
+                    await Task.Delay(50);
                     await Task.Yield();
                 }
                 return 42;
@@ -119,7 +120,7 @@ namespace PooledAwait.Test
             {
                 if (isAsync)
                 {
-                    await Task.Yield();
+                    await Task.Delay(50);
                     await Task.Yield();
                 }
                 return 42;
