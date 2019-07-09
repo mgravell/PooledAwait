@@ -1,3 +1,5 @@
+[Documentation](https://mgravell.github.io/PooledAwait/)
+
 # What is this?
 
 You know how `async` methods that `await` something **incomplete** end up creating a few objects, right? There's

@@ -74,9 +74,14 @@ FireAndForget SomeMethod(...) {
    // .. other bits continue running in the background
 }
 
-As soon as the method `await`s an incomplete operation, the calling
-task regains control as though it were complete; the rest of the operation continues in the background. The caller can either `await`
-the fire-and-forget method, or can discard it (`_ = SomeMethodAsync()` is a "discard").
+As soon as the method uses `await` against an incomplete operation, the calling
+task regains control as though it were complete; the rest of the operation continues in the background. The caller can simply `await`
+the fire-and-forget method with confidence that it only runs synchronously to the first incomplete operation. If you're not in an `async`
+method, you can use "discard" to tell the compiler not to tell you to `await` it:
+
+``` c#
+_ = SomeFireAndForgetMethodAsync();
+```
 
 You won't get unobserved-task-exception problems. If you want to see any exceptions that happen, there is an event `FireAndForget.Exception`
 that you can subscribe to. Otherwise, they just evaporate.
