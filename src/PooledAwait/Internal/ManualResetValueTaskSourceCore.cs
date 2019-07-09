@@ -30,7 +30,7 @@ namespace PooledAwait.Internal
 
         private void InvokeContinuation() => Continuation?.Invoke(State);
 
-        public static readonly WaitCallback Invoke = state => Pool.UnboxAndRecycle<WaitCallbackShim>(state).InvokeContinuation();
+        public static readonly WaitCallback Invoke = state => Pool.UnboxAndReturn<WaitCallbackShim>(state).InvokeContinuation();
     }
 
     /// <summary>Provides the core logic for implementing a manual-reset <see cref="IValueTaskSource"/> or <see cref="IValueTaskSource{TResult}"/>.</summary>
@@ -249,7 +249,7 @@ namespace PooledAwait.Internal
             }
         }
 
-        static readonly ContextCallback s_UnboxAndInvokeContextCallback = state => Pool.UnboxAndRecycle<ManualResetValueTaskSourceCore<TResult>>(state).InvokeContinuation();
+        static readonly ContextCallback s_UnboxAndInvokeContextCallback = state => Pool.UnboxAndReturn<ManualResetValueTaskSourceCore<TResult>>(state).InvokeContinuation();
 
         /// <summary>
         /// Invokes the continuation with the appropriate captured context / scheduler.

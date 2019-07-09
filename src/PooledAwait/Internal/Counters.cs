@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Threading;
 
 namespace PooledAwait.Internal
@@ -10,8 +11,13 @@ namespace PooledAwait.Internal
             private long _value;
             [Conditional("DEBUG")]
             public void Increment() => Interlocked.Increment(ref _value);
+#if !DEBUG
+            [Obsolete("Release only", false)]
+#endif
             public long Value => Interlocked.Read(ref _value);
+#pragma warning disable CS0618
             public override string ToString() => Value.ToString();
+#pragma warning restore CS0618
             public override bool Equals(object? obj) => ThrowHelper.ThrowNotSupportedException<bool>();
             public override int GetHashCode() => ThrowHelper.ThrowNotSupportedException<int>();
             public void Reset() => Interlocked.Exchange(ref _value, 0);
@@ -26,6 +32,9 @@ namespace PooledAwait.Internal
             ItemBoxAllocated,
             TaskAllocated;
 
+#if !DEBUG
+        [Obsolete("Release only", false)]
+#endif
         public static long TotalAllocations =>
             PooledStateAllocated.Value + StateMachineBoxAllocated.Value
             + ItemBoxAllocated.Value + TaskAllocated.Value

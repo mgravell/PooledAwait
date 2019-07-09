@@ -10,6 +10,20 @@ namespace PooledAwait
     public static class Pool
     {
         /// <summary>
+        /// Gets an instance from the pool if possible
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T? TryRent<T>() where T : class
+            => Pool<T>.TryGet();
+
+        /// <summary>
+        /// Puts an instance back into the pool
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Return<T>(T value) where T : class
+            => Pool<T>.TryPut(value);
+
+        /// <summary>
         /// Wraps a value-type into a boxed instance, using an object pool;
         /// consider using value-tuples in particular
         /// </summary>
@@ -22,7 +36,7 @@ namespace PooledAwait
         /// the instance, which should not be touched again
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T UnboxAndRecycle<T>(object obj) where T : struct
+        public static T UnboxAndReturn<T>(object obj) where T : struct
             => ItemBox<T>.UnboxAndRecycle(obj);
 
         private sealed class ItemBox<T> where T : struct

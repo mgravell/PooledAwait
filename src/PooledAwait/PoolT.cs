@@ -8,7 +8,7 @@ namespace PooledAwait
     /// A general-purpose pool of object references; it is the caller's responsibility
     /// to ensure that overlapped usage does not occur
     /// </summary>
-    public static class Pool<T> where T : class
+    internal static class Pool<T> where T : class
     {
         [ThreadStatic]
         private static T? ts_local;
