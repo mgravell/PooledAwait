@@ -28,6 +28,8 @@ namespace PooledAwait.Test
         [InlineData(typeof(LazyTaskCompletionSource<>))]
         [InlineData(typeof(Nothing))]
         [InlineData(typeof(Counters.Counter))]
+        [InlineData(typeof(ConfiguredYieldAwaitable))]
+        [InlineData(typeof(ConfiguredYieldAwaitable.ConfiguredYieldAwaiter))]
         public void ValueTypesOverrideAllMethods(Type type)
         {
             Assert.Same(type, type.GetMethod(nameof(ToString), Type.EmptyTypes).DeclaringType);

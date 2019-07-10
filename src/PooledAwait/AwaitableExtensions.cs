@@ -8,6 +8,7 @@ namespace PooledAwait
     public static class AwaitableExtensions
     {
         /// <summary>Controls whether a yield operation should respect captured context</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ConfiguredYieldAwaitable ConfigureAwait(this YieldAwaitable _, bool continueOnCapturedContext)
             => new ConfiguredYieldAwaitable(continueOnCapturedContext);
     }

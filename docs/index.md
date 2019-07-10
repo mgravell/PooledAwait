@@ -7,6 +7,7 @@ Low-allocation utilies for writing `async` methods, and related tools
 - [`PooledValueTask` / `PooledValueTask<T>`](#pooledvaluetask--pooledvaluetaskt)
 - [`PooledTask` / `PooledTask<T>`](#pooledtask--pooledtaskt)
 - [`FireAndForget`](#fireandforget)
+- [`ConfiguredYieldAwaitable`](#configuredyieldawaitable)
 - [`ValueTaskCompletionSource<T>`](#valuetaskcompletionsourcet)
 - [`PooledValueTaskSource / PooledValueTaskSource<T>`](#pooledvaluetasksource--pooledvaluetasksourcet)
 - [`LazyTaskCompletionSource / LazyTaskCompletionSource<T>`](#lazytaskcompletionsource--lazytaskcompletionsourcet)
@@ -102,6 +103,16 @@ _ = SomeFireAndForgetMethodAsync();
 
 You won't get unobserved-task-exception problems. If you want to see any exceptions that happen, there is an event `FireAndForget.Exception`
 that you can subscribe to. Otherwise, they just evaporate.
+
+## `ConfiguredYieldAwaitable`
+
+Related to `FireAndForget` - when you `await Task.Yield()` it always respects the sync-context/task-scheduler; sometimes *you don't want to*.
+For many awaitables there is a `.ConfigureAwait(continueOnCapturedContext: false)` method that you can use to suppress this, but
+not on `Task.Yield()`... *until now*. Usage is, as you would expect:
+
+``` c#
+await Task.Yield().ConfigureAwait(false);
+```
 
 ---
 

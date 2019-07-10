@@ -45,6 +45,23 @@ namespace PooledAwait.Internal
                 awaiter.OnCompleted(box._execute);
             }
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AwaitUnsafeOnCompleted<TAwaiter>(
+            ref TAwaiter awaiter, ref TStateMachine stateMachine)
+            where TAwaiter : ICriticalNotifyCompletion
+        {
+            var box = Create(ref stateMachine);
+            if (typeof(TAwaiter) == typeof(YieldAwaitable.YieldAwaiter))
+            {
+                Yield(box, false);
+            }
+            else
+            {
+                awaiter.UnsafeOnCompleted(box._execute);
+            }
+        }
+
         private static void Yield(StateMachineBox<TStateMachine> box, bool flowContext)
         {
             // heavily inspired by YieldAwaitable.QueueContinuation
@@ -80,22 +97,6 @@ namespace PooledAwait.Internal
 
         static readonly SendOrPostCallback s_SendOrPostCallback = state => ((StateMachineBox<TStateMachine>)state).Execute();
         static readonly WaitCallback s_WaitCallback = state => ((StateMachineBox<TStateMachine>)state).Execute();
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void AwaitUnsafeOnCompleted<TAwaiter>(
-            ref TAwaiter awaiter, ref TStateMachine stateMachine)
-            where TAwaiter : ICriticalNotifyCompletion
-        {
-            var box = Create(ref stateMachine);
-            if (typeof(TAwaiter) == typeof(YieldAwaitable.YieldAwaiter))
-            {
-                Yield(box, false);
-            }
-            else
-            {
-                awaiter.UnsafeOnCompleted(box._execute);
-            }
-        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Execute()

@@ -84,9 +84,12 @@ In particular, notice:
 | Pooled | Core |    Core |    ValueTask | 1.366 us | 0.0039 us | 0.0034 us |      - |      - |      - |         - |
 ```
 
-and note that *most* of the remaining allocations are actually the work-queue internals of `Task.Yield()` - we've removed
-virtually all of the unnecessary overheads that came from the `async` machinery.
+Note that *most* of the remaining allocations are actually the work-queue internals of `Task.Yield()` (i.e. how
+`ThreadPool.QueueUserWorkItem` works) - we've removed virtually all of the unnecessary overheads that came from the
+`async` machinery. Most real-world scenarios aren't using `Task.Yield()` - they are waiting on external data, etc - so
+they won't see these. Plus they are effectively zero on .NET Core 3.
 
-The tests do the exact same thing; the only thing that changes is the return type, i.e. whether it is `async Task<int>`, `async ValueTask<int>`, `async PooledTask<int>` or `async PooledValueTask<int>`.
+The tests do the exact same thing; the only thing that changes is the return type, i.e. whether it is
+`async Task<int>`, `async ValueTask<int>`, `async PooledTask<int>` or `async PooledValueTask<int>`.
 All of them have the same threading/execution-context/sync-context semantics; there's no cheating going on.
 
