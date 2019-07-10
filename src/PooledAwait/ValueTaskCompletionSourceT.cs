@@ -44,12 +44,12 @@ namespace PooledAwait
         }
 
         /// <summary>
-        /// Indicates whether this instance is well-defined against a task instance
+        /// Indicates whether this is an invalid default instance
         /// </summary>
-        public bool HasTask
+        public bool IsNull
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _state != null;
+            get => _state == null;
         }
 
         internal bool IsOptimized => _state is Task<T>;

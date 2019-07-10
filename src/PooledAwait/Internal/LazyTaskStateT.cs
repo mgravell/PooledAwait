@@ -43,7 +43,7 @@ namespace PooledAwait.Internal
         {
             get
             {
-                lock (this) { return _source.HasTask; }
+                lock (this) { return !_source.IsNull; }
             }
         }
         internal bool HasTask => Volatile.Read(ref _task) != null;
@@ -55,7 +55,7 @@ namespace PooledAwait.Internal
                 if (_isComplete) return false;
                 if (token != _version) return false;
                 _isComplete = true;
-                if (_source.HasTask) return _source.TrySetResult(result);
+                if (!_source.IsNull) return _source.TrySetResult(result);
                 _result = result;
                 return true;
             }
@@ -68,7 +68,7 @@ namespace PooledAwait.Internal
                 if (_isComplete) return false;
                 if (token != _version) return false;
                 _isComplete = true;
-                if (_source.HasTask) return _source.TrySetException(exception);
+                if (!_source.IsNull) return _source.TrySetException(exception);
                 _exception = exception;
                 return true;
             }
@@ -81,7 +81,7 @@ namespace PooledAwait.Internal
                 if (_isComplete) return false;
                 if (token != _version) return false;
                 _isComplete = true;
-                if (_source.HasTask) return _source.TrySetCanceled(cancellationToken);
+                if (!_source.IsNull) return _source.TrySetCanceled(cancellationToken);
                 _task = TaskUtils.TaskFactory<T>.Canceled;
                 return true;
             }

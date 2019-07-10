@@ -11,7 +11,7 @@ namespace PooledAwait.Test
         public void DefaultInstanceBehavior()
         {
             ValueTaskCompletionSource<int> source = default;
-            Assert.False(source.HasTask);
+            Assert.True(source.IsNull);
             Assert.False(source.IsOptimized);
 
             Assert.False(source.TrySetResult(42));
@@ -98,7 +98,7 @@ namespace PooledAwait.Test
                 }
             }
 
-            Assert.True(source.HasTask); // still good
+            Assert.False(source.IsNull); // still good
         }
     }
 }

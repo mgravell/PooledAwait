@@ -37,7 +37,7 @@ namespace PooledAwait.TaskBuilders
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetResult()
         {
-            if (_source.HasTask) _source.TrySetResult(default);
+            _source.TrySetResult(default);
         }
 
         [Browsable(false)]
@@ -45,14 +45,14 @@ namespace PooledAwait.TaskBuilders
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetException(Exception exception)
         {
-            if (_source.HasTask) _source.TrySetException(exception);
+            _source.TrySetException(exception);
             _exception = exception;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void EnsureHasTask()
         {
-            if (!_source.HasTask) _source = ValueTaskCompletionSource<Nothing>.Create();
+            if (_source.IsNull) _source = ValueTaskCompletionSource<Nothing>.Create();
         }
 
         [Browsable(false)]
@@ -63,7 +63,7 @@ namespace PooledAwait.TaskBuilders
             get
             {
                 SystemTask task;
-                if (_source.HasTask) task = _source.Task;
+                if (!_source.IsNull) task = _source.Task;
                 else if (_exception is OperationCanceledException) task = TaskUtils.TaskFactory<Nothing>.Canceled;
                 else if (_exception != null) task = TaskUtils.FromException(_exception);
                 else task = TaskUtils.CompletedTask;

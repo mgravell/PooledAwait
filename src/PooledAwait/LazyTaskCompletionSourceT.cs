@@ -115,5 +115,14 @@ namespace PooledAwait
         internal bool IsValid => _state != null && _state.IsValid(_token);
         internal bool HasSource => _state != null && _state.HasSource;
         internal bool HasTask => _state != null && _state.HasTask;
+
+        /// <summary>
+        /// Indicates whether this is an invalid default instance
+        /// </summary>
+        public bool IsNull
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _state == null;
+        }
     }
 }
