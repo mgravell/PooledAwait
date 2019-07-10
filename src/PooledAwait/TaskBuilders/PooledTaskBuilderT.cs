@@ -60,9 +60,9 @@ namespace PooledAwait.TaskBuilders
             {
                 Task<T> task;
                 if (_source.HasTask) task = _source.Task;
-                else if (_exception is OperationCanceledException) task = TaskUtils.Canceled<T>.Instance;
+                else if (_exception is OperationCanceledException) task = TaskUtils.TaskFactory<T>.Canceled;
                 else if (_exception != null) task = TaskUtils.FromException<T>(_exception);
-                else task = SystemTask.FromResult<T>(_result);
+                else task = TaskUtils.TaskFactory<T>.FromResult(_result);
                 return new PooledTask<T>(task);
             }
         }

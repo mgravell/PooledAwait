@@ -25,9 +25,9 @@ namespace PooledAwait.Internal
             {
                 CheckTokenInsideLock(token);
                 if (_task != null) { }
-                else if (_exception is OperationCanceledException) _task = TaskUtils.Canceled<T>.Instance;
+                else if (_exception is OperationCanceledException) _task = TaskUtils.TaskFactory<T>.Canceled;
                 else if (_exception != null) _task = TaskUtils.FromException<T>(_exception);
-                else if (_isComplete) _task = typeof(T) == typeof(Nothing) ? TaskUtils.CompletedTask : Task.FromResult<T>(_result);
+                else if (_isComplete) _task = typeof(T) == typeof(Nothing) ? TaskUtils.CompletedTask : TaskUtils.TaskFactory<T>.FromResult(_result);
                 else
                 {
                     _source = ValueTaskCompletionSource<T>.Create();
@@ -81,7 +81,7 @@ namespace PooledAwait.Internal
                 if (token != _version) return false;
                 _isComplete = true;
                 if (_source.HasTask) return _source.TrySetCanceled(cancellationToken);
-                _task = TaskUtils.Canceled<T>.Instance;
+                _task = TaskUtils.TaskFactory<T>.Canceled;
                 return true;
             }
         }
