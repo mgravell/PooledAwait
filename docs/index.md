@@ -104,6 +104,8 @@ _ = SomeFireAndForgetMethodAsync();
 You won't get unobserved-task-exception problems. If you want to see any exceptions that happen, there is an event `FireAndForget.Exception`
 that you can subscribe to. Otherwise, they just evaporate.
 
+---
+
 ## `ConfiguredYieldAwaitable`
 
 Related to `FireAndForget` - when you `await Task.Yield()` it always respects the sync-context/task-scheduler; sometimes *you don't want to*.
