@@ -12,7 +12,6 @@ namespace PooledAwait
     /// </summary>
     public readonly struct LazyTaskCompletionSource<T> : IDisposable
     {
-
         /// <summary><see cref="Object.Equals(Object)"/></summary>
         public override bool Equals(object obj) => obj is LazyTaskCompletionSource<T> ltcs && _state == ltcs._state && _token == ltcs._token;
         /// <summary><see cref="Object.GetHashCode"/></summary>
@@ -43,22 +42,69 @@ namespace PooledAwait
             => new LazyTaskCompletionSource<T>(LazyTaskState<T>.Create());
 
         /// <summary>
-        /// Attempt to set the outcome for this operation
+        /// Create a new instance; this instance will never by recycled
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static LazyTaskCompletionSource<T> CreateConstant(T value)
+            => new LazyTaskCompletionSource<T>(LazyTaskState<T>.CreateConstant(value));
+
+
+        private static LazyTaskCompletionSource<T> _canceled;
+
+        /// <summary>
+        /// A global LazyTaskCompletionSource that represents a cancelled operation
+        /// </summary>
+        public static LazyTaskCompletionSource<T> CanceledTask
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _canceled.IsValid ? _canceled : _canceled = new LazyTaskCompletionSource<T>(LazyTaskState<T>.CreateCanceled());
+        }
+
+        /// <summary>
+        /// Set the result of the operation
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TrySetResult(T result) => _state != null && _state.TrySetResult(_token, result);
 
         /// <summary>
-        /// Attempt to set the outcome for this operation
+        /// Set the result of the operation
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TrySetCanceled(CancellationToken cancellationToken = default) => _state != null && _state.TrySetCanceled(_token, cancellationToken);
+        public void SetResult(T result)
+        {
+            if (!TrySetResult(result)) ThrowHelper.ThrowInvalidOperationException();
+        }
 
         /// <summary>
-        /// Attempt to set the outcome for this operation
+        /// Set the result of the operation
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TrySetCanceled(CancellationToken cancellationToken = default)
+            => _state != null && _state.TrySetCanceled(_token, cancellationToken);
+
+        /// <summary>
+        /// Set the result of the operation
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetCanceled(CancellationToken cancellationToken = default)
+        {
+            if (!TrySetCanceled(cancellationToken)) ThrowHelper.ThrowInvalidOperationException();
+        }
+
+        /// <summary>
+        /// Set the result of the operation
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TrySetException(Exception exception) => _state != null && _state.TrySetException(_token, exception);
+
+        /// <summary>
+        /// Set the result of the operation
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetException(Exception exception)
+        {
+            if (!TrySetException(exception)) ThrowHelper.ThrowInvalidOperationException();
+        }
 
         /// <summary>
         /// Release all resources associated with this operation

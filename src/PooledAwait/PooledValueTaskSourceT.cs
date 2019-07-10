@@ -95,12 +95,39 @@ namespace PooledAwait
         /// Set the result of the operation
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetResult(T result)
+        {
+            if (!TrySetResult(result)) ThrowHelper.ThrowInvalidOperationException();
+        }
+
+        /// <summary>
+        /// Set the result of the operation
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TrySetException(Exception error) => _source != null && _source.TrySetException(error, _token);
 
         /// <summary>
         /// Set the result of the operation
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetException(Exception exception)
+        {
+            if (!TrySetException(exception)) ThrowHelper.ThrowInvalidOperationException();
+        }
+
+        /// <summary>
+        /// Set the result of the operation
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TrySetCanceled() => _source != null && _source.TrySetCanceled(_token);
+
+        /// <summary>
+        /// Set the result of the operation
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetCanceled()
+        {
+            if (!TrySetCanceled()) ThrowHelper.ThrowInvalidOperationException();
+        }
     }
 }

@@ -10,6 +10,74 @@ namespace PooledAwait.Test
     public class LazyTaskTests
     {
         [Fact]
+        public void ConstantsAreImmortal()
+        {
+            var obj = LazyTaskCompletionSource<int>.CreateConstant(42);
+            Assert.True(obj.IsValid);
+            Assert.Equal(42, obj.Task.Result);
+            obj.Dispose();
+            Assert.True(obj.IsValid);
+            Assert.Equal(42, obj.Task.Result);
+        }
+
+        [Fact]
+        public void ConstantCanceledAreImmortal()
+        {
+            var obj = LazyTaskCompletionSource<int>.CanceledTask;
+            Assert.True(obj.IsValid);
+            Assert.Equal(TaskStatus.Canceled, obj.Task.Status);
+            obj.Dispose();
+            Assert.True(obj.IsValid);
+            Assert.Equal(TaskStatus.Canceled, obj.Task.Status);
+        }
+
+        [Fact]
+        public void ConstantsAreImmortal_NonGeneric()
+        {
+            var obj = LazyTaskCompletionSource.CompletedTask;
+            Assert.True(obj.IsValid);
+            Assert.Same(Task.CompletedTask, obj.Task);
+            obj.Dispose();
+            Assert.True(obj.IsValid);
+            Assert.Same(Task.CompletedTask, obj.Task);
+        }
+
+        [Fact]
+        public void ConstantCanceledAreImmortal_NonGeneric()
+        {
+            var obj = LazyTaskCompletionSource.CanceledTask;
+            Assert.True(obj.IsValid);
+            Assert.Equal(TaskStatus.Canceled, obj.Task.Status);
+            obj.Dispose();
+            Assert.True(obj.IsValid);
+            Assert.Equal(TaskStatus.Canceled, obj.Task.Status);
+        }
+
+        [Fact]
+        public void NormalValuesAreNotImmortal()
+        {
+            var obj = LazyTaskCompletionSource<int>.Create();
+            obj.SetResult(42);
+            Assert.True(obj.IsValid);
+            Assert.Equal(42, obj.Task.Result);
+            obj.Dispose();
+            Assert.False(obj.IsValid);
+            Assert.Throws<InvalidOperationException>(() => obj.Task.Result);
+        }
+
+        [Fact]
+        public void NormalValuesAreNotImmortal_NonGeneric()
+        {
+            var obj = LazyTaskCompletionSource.Create();
+            obj.SetResult();
+            Assert.True(obj.IsValid);
+            obj.Task.Wait();
+            obj.Dispose();
+            Assert.False(obj.IsValid);
+            Assert.Throws<InvalidOperationException>(() => obj.Task.Wait());
+        }
+
+        [Fact]
         public void DefaultLazy()
         {
             var source = default(LazyTaskCompletionSource);

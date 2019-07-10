@@ -19,6 +19,7 @@ namespace PooledAwait.Internal
         {
             if (token != _version) ThrowHelper.ThrowInvalidOperationException();
         }
+
         public Task GetTask(short token)
         {
             lock (this)
@@ -97,7 +98,25 @@ namespace PooledAwait.Internal
             _version = InitialVersion;
         }
 
-        const short InitialVersion = 0;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static LazyTaskState<T> CreateConstant(T value)
+        {
+            var obj = new LazyTaskState<T>();
+            obj._version = Constant;
+            obj.TrySetResult(Constant, value);
+            return obj;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static LazyTaskState<T> CreateCanceled()
+        {
+            var obj = new LazyTaskState<T>();
+            obj._version = Constant;
+            obj.TrySetCanceled(Constant);
+            return obj;
+        }
+
+        const short InitialVersion = 0, Constant = InitialVersion - 1;
 
         internal short Version
         {
@@ -108,6 +127,8 @@ namespace PooledAwait.Internal
         [MethodImpl(MethodImplOptions.NoInlining)]
         internal void Recycle(short token)
         {
+            if (token == Constant) return; // never recycle constant values; this is by design
+
             if (Volatile.Read(ref _version) != token) return; // wrong version; all bets are off!
 
             if (!Volatile.Read(ref _isComplete)) // if incomplete, try to cancel
@@ -124,15 +145,20 @@ namespace PooledAwait.Internal
                 {
                     if (token == _version)
                     {
-                        _version++;
                         _result = default!;
                         _exception = default;
                         _task = default;
                         _isComplete = false;
                         _source = default;
-                        if (_version != InitialVersion)
-                        {   // don't wrap all the way around when recycling; could lead to conflicts
-                            Pool<LazyTaskState<T>>.TryPut(this);
+
+                        switch (++_version)
+                        {
+                            case InitialVersion: // don't wrap all the way around when recycling; could lead to conflicts
+                            case Constant: // don't allow things to *become* constants
+                                break;
+                            default:
+                                Pool<LazyTaskState<T>>.TryPut(this);
+                                break;
                         }
                     }
                 }
@@ -141,9 +167,6 @@ namespace PooledAwait.Internal
             {
                 if (haveLock) Monitor.Exit(this);
             }
-
         }
-
-
     }
 }
