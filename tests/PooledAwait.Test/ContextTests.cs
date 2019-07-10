@@ -27,8 +27,12 @@ namespace PooledAwait.Test
                 {
                     await Task.Yield();
                     Assert.Same(ctx, SynchronizationContext.Current);
+                    await Task.Yield().ConfigureAwait(true);
+                    Assert.Same(ctx, SynchronizationContext.Current);
+                    await Task.Yield().ConfigureAwait(false);
+                    Assert.Null(SynchronizationContext.Current);
                 }
-                Assert.True(ctx.PostCount >= 0 && ctx.PostCount <= 2);
+                Assert.True(ctx.PostCount >= 2 && ctx.PostCount <= 3);
                 Assert.Equal(0, ctx.SendCount);
             }
             await Task.Yield();
@@ -46,8 +50,12 @@ namespace PooledAwait.Test
                 {
                     await Task.Yield();
                     Assert.Same(ctx, SynchronizationContext.Current);
+                    await Task.Yield().ConfigureAwait(true);
+                    Assert.Same(ctx, SynchronizationContext.Current);
+                    await Task.Yield().ConfigureAwait(false);
+                    Assert.Null(SynchronizationContext.Current);
                 }
-                Assert.True(ctx.PostCount >= 0 && ctx.PostCount <= 2);
+                Assert.True(ctx.PostCount >= 2 && ctx.PostCount <= 3);
                 Assert.Equal(0, ctx.SendCount);
             }
             await Task.Yield();
@@ -65,8 +73,12 @@ namespace PooledAwait.Test
                 {
                     await Task.Yield();
                     Assert.Same(ctx, SynchronizationContext.Current);
+                    await Task.Yield().ConfigureAwait(true);
+                    Assert.Same(ctx, SynchronizationContext.Current);
+                    await Task.Yield().ConfigureAwait(false);
+                    Assert.Null(SynchronizationContext.Current);
                 }
-                Assert.True(ctx.PostCount >= 0 && ctx.PostCount <= 2);
+                Assert.True(ctx.PostCount >= 2 && ctx.PostCount <= 3);
                 Assert.Equal(0, ctx.SendCount);
             }
             await Task.Yield();
@@ -84,8 +96,12 @@ namespace PooledAwait.Test
                 {
                     await Task.Yield();
                     Assert.Same(ctx, SynchronizationContext.Current);
+                    await Task.Yield().ConfigureAwait(true);
+                    Assert.Same(ctx, SynchronizationContext.Current);
+                    await Task.Yield().ConfigureAwait(false);
+                    Assert.Null(SynchronizationContext.Current);
                 }
-                Assert.True(ctx.PostCount >= 0 && ctx.PostCount <= 2);
+                Assert.True(ctx.PostCount >= 2 && ctx.PostCount <= 3);
                 Assert.Equal(0, ctx.SendCount);
             }
             await Task.Yield();
@@ -94,25 +110,139 @@ namespace PooledAwait.Test
         [Fact]
         public async Task TaskSchedulerRespected_Task()
         {
-            using (var outer = MyTaskScheduler.Create(Log))
+            using (var ctx = MyTaskScheduler.Create(Log))
             {
-                var ctx = outer;
-                Assert.Equal(0, outer.Enqueued);
-                Assert.Equal(0, outer.Dequeued);
+                Assert.Equal(0, ctx.Enqueued);
+                Assert.Equal(0, ctx.Dequeued);
 
-                var winner = await Task.Factory.StartNew(() => Task.WaitAny(Impl(), Task.Delay(2000)), default, default, ctx);
-                Assert.Equal(0, winner);
-                Assert.True(outer.Enqueued >= 0 && outer.Enqueued <= 2);
-                Assert.Equal(outer.Enqueued, outer.Dequeued);
+                Assert.NotSame(TaskScheduler.Default, ctx);
+                Assert.Same(TaskScheduler.Default, TaskScheduler.Current);
+                await Task.Factory.StartNew(SyncOverAsync, default, default, ctx);
+                Assert.Same(TaskScheduler.Default, TaskScheduler.Current);
 
+                void SyncOverAsync()
+                {
+                    Assert.Same(ctx, TaskScheduler.Current);
+                    Impl().GetAwaiter().GetResult();
+                    Assert.Same(ctx, TaskScheduler.Current);
+                }
                 async Task Impl()
                 {
-                    Log?.WriteLine("before yield");
-                    await Task.Yield();
-                    Log?.WriteLine("after yield");
                     Assert.Same(ctx, TaskScheduler.Current);
-                    Log?.WriteLine("after test");
+                    await Task.Yield();
+                    Assert.Same(ctx, TaskScheduler.Current);
+                    await Task.Yield().ConfigureAwait(true);
+                    Assert.Same(ctx, TaskScheduler.Current);
+                    await Task.Yield().ConfigureAwait(false);
+                    Assert.Same(TaskScheduler.Default, TaskScheduler.Current);
                 }
+                Assert.Equal(ctx.Enqueued, ctx.Dequeued);
+                Assert.Equal(3, ctx.Enqueued);
+            }
+            await Task.Yield();
+        }
+
+        [Fact]
+        public async Task TaskSchedulerRespected_ValueTask()
+        {
+            using (var ctx = MyTaskScheduler.Create(Log))
+            {
+                Assert.Equal(0, ctx.Enqueued);
+                Assert.Equal(0, ctx.Dequeued);
+
+                Assert.NotSame(TaskScheduler.Default, ctx);
+                Assert.Same(TaskScheduler.Default, TaskScheduler.Current);
+                await Task.Factory.StartNew(SyncOverAsync, default, default, ctx);
+                Assert.Same(TaskScheduler.Default, TaskScheduler.Current);
+
+                void SyncOverAsync()
+                {
+                    Assert.Same(ctx, TaskScheduler.Current);
+                    Impl().GetAwaiter().GetResult();
+                    Assert.Same(ctx, TaskScheduler.Current);
+                }
+                async ValueTask Impl()
+                {
+                    Assert.Same(ctx, TaskScheduler.Current);
+                    await Task.Yield();
+                    Assert.Same(ctx, TaskScheduler.Current);
+                    await Task.Yield().ConfigureAwait(true);
+                    Assert.Same(ctx, TaskScheduler.Current);
+                    await Task.Yield().ConfigureAwait(false);
+                    Assert.Same(TaskScheduler.Default, TaskScheduler.Current);
+                }
+                Assert.Equal(ctx.Enqueued, ctx.Dequeued);
+                Assert.Equal(3, ctx.Enqueued);
+            }
+            await Task.Yield();
+        }
+
+        [Fact]
+        public async Task TaskSchedulerRespected_PooledTask()
+        {
+            using (var ctx = MyTaskScheduler.Create(Log))
+            {
+                Assert.Equal(0, ctx.Enqueued);
+                Assert.Equal(0, ctx.Dequeued);
+
+                Assert.NotSame(TaskScheduler.Default, ctx);
+                Assert.Same(TaskScheduler.Default, TaskScheduler.Current);
+                await Task.Factory.StartNew(SyncOverAsync, default, default, ctx);
+                Assert.Same(TaskScheduler.Default, TaskScheduler.Current);
+
+                void SyncOverAsync()
+                {
+                    Assert.Same(ctx, TaskScheduler.Current);
+                    Impl().GetAwaiter().GetResult();
+                    Assert.Same(ctx, TaskScheduler.Current);
+                }
+                async PooledTask Impl()
+                {
+                    Assert.Same(ctx, TaskScheduler.Current);
+                    await Task.Yield();
+                    Assert.Same(ctx, TaskScheduler.Current);
+                    await Task.Yield().ConfigureAwait(true);
+                    Assert.Same(ctx, TaskScheduler.Current);
+                    await Task.Yield().ConfigureAwait(false);
+                    Assert.Same(TaskScheduler.Default, TaskScheduler.Current);
+                }
+                Assert.Equal(ctx.Enqueued, ctx.Dequeued);
+                Assert.Equal(3, ctx.Enqueued);
+            }
+            await Task.Yield();
+        }
+
+        [Fact]
+        public async Task TaskSchedulerRespected_PooledValueTask()
+        {
+            using (var ctx = MyTaskScheduler.Create(Log))
+            {
+                Assert.Equal(0, ctx.Enqueued);
+                Assert.Equal(0, ctx.Dequeued);
+
+                Assert.NotSame(TaskScheduler.Default, ctx);
+                Assert.Same(TaskScheduler.Default, TaskScheduler.Current);
+                await Task.Factory.StartNew(SyncOverAsync, default, default, ctx);
+                Assert.Same(TaskScheduler.Default, TaskScheduler.Current);
+
+                void SyncOverAsync()
+                {
+                    Assert.Same(ctx, TaskScheduler.Current);
+                    Impl().GetAwaiter().GetResult();
+                    Assert.Same(ctx, TaskScheduler.Current);
+                }
+                async PooledValueTask Impl()
+                {
+                    Assert.Same(ctx, TaskScheduler.Current);
+                    await Task.Yield();
+                    Assert.Same(ctx, TaskScheduler.Current);
+                    await Task.Yield().ConfigureAwait(true);
+                    Assert.Same(ctx, TaskScheduler.Current);
+                    await Task.Yield().ConfigureAwait(false);
+                    Assert.Same(TaskScheduler.Default, TaskScheduler.Current);
+                }
+                Assert.Equal(ctx.Enqueued, ctx.Dequeued);
+                Assert.Equal(3, ctx.Enqueued);
             }
             await Task.Yield();
         }
@@ -210,7 +340,6 @@ namespace PooledAwait.Test
         sealed class MyTaskScheduler : TaskScheduler, IDisposable
         {
             private readonly ITestOutputHelper _log;
-            readonly Thread _worker;
             readonly Queue<Task> _queue = new Queue<Task>();
 
             protected override IEnumerable<Task> GetScheduledTasks()
@@ -221,8 +350,10 @@ namespace PooledAwait.Test
             private MyTaskScheduler(ITestOutputHelper log)
             {
                 _log = log;
-                _worker = new Thread(obj => ((MyTaskScheduler)obj).Run());
-                _worker.Start(this);
+                for (int i = 0; i < 3; i++)
+                {
+                    new Thread(obj => ((MyTaskScheduler)obj).Run()).Start(this);
+                }
             }
             private void Run()
             {
