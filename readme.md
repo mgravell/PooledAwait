@@ -15,15 +15,17 @@ a `ValueTask<int>`? So you can just cheat:
 ``` c#
 public ValueTask<int> DoTheThing() // the outer method is not async
 {
-	return ReallyDoTheThing();
-	async PooledValueTask<int> ReallyDoTheThing()
+	return ReallyDoTheThing(this);
+	static async PooledValueTask<int> ReallyDoTheThing(SomeType obj)
 	{
 		... await ...
-
+		// (use obj.* instead of this.*)
 		... return ...
 	}
 }
 ```
+
+(the use of a `static` local function here avoids a `<>c__DisplayClass` wrapper from how the local-function capture context is implemented by the compiler)
 
 And how about if maybe just maybe in the future it could be ([if this happens](https://github.com/dotnet/csharplang/issues/1407)) just:
 
@@ -34,6 +36,8 @@ public async ValueTask<int> DoTheThing()
 	// no changes here at all
 }
 ```
+
+(although note that in some cases it can work *better* with the `static` trick, as above)
 
 Would that be awesome? Because that's what this is!
 
