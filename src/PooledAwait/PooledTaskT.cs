@@ -8,7 +8,7 @@ namespace PooledAwait
     /// <summary>
     /// A Task<typeparamref name="T"/>, but with a custom builder
     /// </summary>
-    [AsyncMethodBuilder(typeof(TaskBuilders.PooledTaskBuilder<>))]
+    [AsyncMethodBuilder(typeof(MethodBuilders.PooledTaskMethodBuilder<>))]
     public readonly struct PooledTask<T>
     {
         /// <summary><see cref="Object.Equals(Object)"/></summary>

@@ -2,31 +2,30 @@
 using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using SystemTask = System.Threading.Tasks.Task;
+
 #pragma warning disable CS1591
 
-namespace PooledAwait.TaskBuilders
+namespace PooledAwait.MethodBuilders
 {
     /// <summary>
     /// This type is not intended for direct usage
     /// </summary>
     [Browsable(false)]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public struct PooledTaskBuilder<T>
+    public struct PooledTaskMethodBuilder
     {
         public override bool Equals(object obj) => ThrowHelper.ThrowNotSupportedException<bool>();
         public override int GetHashCode() => ThrowHelper.ThrowNotSupportedException<int>();
-        public override string ToString() => nameof(PooledTaskBuilder);
+        public override string ToString() => nameof(PooledTaskMethodBuilder);
 
-        private ValueTaskCompletionSource<T> _source;
+        private ValueTaskCompletionSource<Nothing> _source;
         private Exception _exception;
-        private T _result;
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static PooledTaskBuilder<T> Create() => default;
+        public static PooledTaskMethodBuilder Create() => default;
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -36,10 +35,9 @@ namespace PooledAwait.TaskBuilders
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetResult(T result)
+        public void SetResult()
         {
-            _source.TrySetResult(result);
-            _result = result;
+            _source.TrySetResult(default);
         }
 
         [Browsable(false)]
@@ -51,26 +49,26 @@ namespace PooledAwait.TaskBuilders
             _exception = exception;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void EnsureHasTask()
+        {
+            if (_source.IsNull) _source = ValueTaskCompletionSource<Nothing>.Create();
+        }
+
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public PooledTask<T> Task
+        public PooledTask Task
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                Task<T> task;
+                SystemTask task;
                 if (!_source.IsNull) task = _source.Task;
-                else if (_exception is OperationCanceledException) task = TaskUtils.TaskFactory<T>.Canceled;
-                else if (_exception != null) task = TaskUtils.FromException<T>(_exception);
-                else task = TaskUtils.TaskFactory<T>.FromResult(_result);
-                return new PooledTask<T>(task);
+                else if (_exception is OperationCanceledException) task = TaskUtils.TaskFactory<Nothing>.Canceled;
+                else if (_exception != null) task = TaskUtils.FromException(_exception);
+                else task = TaskUtils.CompletedTask;
+                return new PooledTask(task);
             }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void EnsureHasTask()
-        {
-            if (_source.IsNull) _source = ValueTaskCompletionSource<T>.Create();
         }
 
         [Browsable(false)]

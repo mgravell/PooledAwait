@@ -2,26 +2,32 @@
 using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using SystemTask = System.Threading.Tasks.Task;
 
 #pragma warning disable CS1591
 
-namespace PooledAwait.TaskBuilders
+namespace PooledAwait.MethodBuilders
 {
     /// <summary>
     /// This type is not intended for direct usage
     /// </summary>
     [Browsable(false)]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public struct FireAndForgetBuilder
+    public struct PooledTaskMethodBuilder<T>
     {
         public override bool Equals(object obj) => ThrowHelper.ThrowNotSupportedException<bool>();
         public override int GetHashCode() => ThrowHelper.ThrowNotSupportedException<int>();
-        public override string ToString() => nameof(FireAndForgetBuilder);
+        public override string ToString() => nameof(PooledTaskMethodBuilder);
+
+        private ValueTaskCompletionSource<T> _source;
+        private Exception _exception;
+        private T _result;
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FireAndForgetBuilder Create() => default;
+        public static PooledTaskMethodBuilder<T> Create() => default;
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -31,19 +37,41 @@ namespace PooledAwait.TaskBuilders
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetResult() { }
+        public void SetResult(T result)
+        {
+            _source.TrySetResult(result);
+            _result = result;
+        }
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetException(Exception exception) => FireAndForget.OnException(exception);
+        public void SetException(Exception exception)
+        {
+            _source.TrySetException(exception);
+            _exception = exception;
+        }
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public FireAndForget Task
+        public PooledTask<T> Task
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => default;
+            get
+            {
+                Task<T> task;
+                if (!_source.IsNull) task = _source.Task;
+                else if (_exception is OperationCanceledException) task = TaskUtils.TaskFactory<T>.Canceled;
+                else if (_exception != null) task = TaskUtils.FromException<T>(_exception);
+                else task = TaskUtils.TaskFactory<T>.FromResult(_result);
+                return new PooledTask<T>(task);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void EnsureHasTask()
+        {
+            if (_source.IsNull) _source = ValueTaskCompletionSource<T>.Create();
         }
 
         [Browsable(false)]
@@ -53,7 +81,10 @@ namespace PooledAwait.TaskBuilders
             ref TAwaiter awaiter, ref TStateMachine stateMachine)
             where TAwaiter : INotifyCompletion
             where TStateMachine : IAsyncStateMachine
-            => StateMachineBox<TStateMachine>.AwaitOnCompleted(ref awaiter, ref stateMachine);
+        {
+            EnsureHasTask();
+            StateMachineBox<TStateMachine>.AwaitOnCompleted(ref awaiter, ref stateMachine);
+        }
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -62,7 +93,10 @@ namespace PooledAwait.TaskBuilders
             ref TAwaiter awaiter, ref TStateMachine stateMachine)
             where TAwaiter : ICriticalNotifyCompletion
             where TStateMachine : IAsyncStateMachine
-            => StateMachineBox<TStateMachine>.AwaitUnsafeOnCompleted(ref awaiter, ref stateMachine);
+        {
+            EnsureHasTask();
+            StateMachineBox<TStateMachine>.AwaitUnsafeOnCompleted(ref awaiter, ref stateMachine);
+        }
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]

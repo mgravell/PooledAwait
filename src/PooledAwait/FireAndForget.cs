@@ -9,7 +9,7 @@ namespace PooledAwait
     /// Represents an operation that completes at the first incomplete await,
     /// with the remainder continuing in the background
     /// </summary>
-    [AsyncMethodBuilder(typeof(TaskBuilders.FireAndForgetBuilder))]
+    [AsyncMethodBuilder(typeof(MethodBuilders.FireAndForgetMethodBuilder))]
     public readonly struct FireAndForget
     {
         /// <summary><see cref="Object.Equals(Object)"/></summary>

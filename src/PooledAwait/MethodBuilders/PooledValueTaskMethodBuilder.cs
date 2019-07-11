@@ -4,25 +4,26 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 #pragma warning disable CS1591
-namespace PooledAwait.TaskBuilders
+
+namespace PooledAwait.MethodBuilders
 {
     /// <summary>
     /// This type is not intended for direct usage
     /// </summary>
     [Browsable(false)]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public struct PooledValueTaskBuilder<T>
+    public struct PooledValueTaskMethodBuilder
     {
         public override bool Equals(object obj) => ThrowHelper.ThrowNotSupportedException<bool>();
         public override int GetHashCode() => ThrowHelper.ThrowNotSupportedException<int>();
-        public override string ToString() => nameof(PooledValueTaskBuilder);
+        public override string ToString() => nameof(PooledValueTaskMethodBuilder);
 
-        private PooledValueTaskSource<T> _source;
+        private PooledValueTaskSource _source;
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static PooledValueTaskBuilder<T> Create() => default;
+        public static PooledValueTaskMethodBuilder Create() => default;
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -32,10 +33,9 @@ namespace PooledAwait.TaskBuilders
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetResult(T result)
+        public void SetResult()
         {
-            if (_source.HasTask) _source.TrySetResult(result);
-            else _source = new PooledValueTaskSource<T>(result);
+            _source.TrySetResult();
         }
 
         [Browsable(false)]
@@ -50,12 +50,12 @@ namespace PooledAwait.TaskBuilders
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void EnsureHasTask()
         {
-            if (!_source.HasTask) _source = PooledValueTaskSource<T>.Create();
+            if (!_source.HasTask) _source = PooledValueTaskSource.Create();
         }
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public PooledValueTask<T> Task
+        public PooledValueTask Task
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _source.PooledTask;

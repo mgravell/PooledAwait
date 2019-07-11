@@ -1,7 +1,6 @@
 ﻿using PooledAwait.Internal;
-using PooledAwait.TaskBuilders;
+using PooledAwait.MethodBuilders;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Xunit;
@@ -19,11 +18,11 @@ namespace PooledAwait.Test
         [InlineData(typeof(PooledValueTaskSource))]
         [InlineData(typeof(PooledValueTaskSource<>))]
         [InlineData(typeof(ValueTaskCompletionSource<>))]
-        [InlineData(typeof(FireAndForgetBuilder))]
-        [InlineData(typeof(PooledTaskBuilder))]
-        [InlineData(typeof(PooledTaskBuilder<>))]
-        [InlineData(typeof(PooledValueTaskBuilder))]
-        [InlineData(typeof(PooledValueTaskBuilder<>))]
+        [InlineData(typeof(FireAndForgetMethodBuilder))]
+        [InlineData(typeof(PooledTaskMethodBuilder))]
+        [InlineData(typeof(PooledTaskMethodBuilder<>))]
+        [InlineData(typeof(PooledValueTaskMethodBuilder))]
+        [InlineData(typeof(PooledValueTaskMethodBuilder<>))]
         [InlineData(typeof(LazyTaskCompletionSource))]
         [InlineData(typeof(LazyTaskCompletionSource<>))]
         [InlineData(typeof(Nothing))]
@@ -42,11 +41,11 @@ namespace PooledAwait.Test
         static readonly Type[] s_allowedMutable =
         {
             typeof(Counters.Counter),
-            typeof(FireAndForgetBuilder),
-            typeof(PooledTaskBuilder),
-            typeof(PooledTaskBuilder<>),
-            typeof(PooledValueTaskBuilder),
-            typeof(PooledValueTaskBuilder<>),
+            typeof(FireAndForgetMethodBuilder),
+            typeof(PooledTaskMethodBuilder),
+            typeof(PooledTaskMethodBuilder<>),
+            typeof(PooledValueTaskMethodBuilder),
+            typeof(PooledValueTaskMethodBuilder<>),
         };
 
     }
