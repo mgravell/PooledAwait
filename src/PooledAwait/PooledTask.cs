@@ -48,5 +48,14 @@ namespace PooledAwait
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ConfiguredTaskAwaitable ConfigureAwait(bool continueOnCapturedContext)
             => AsTask().ConfigureAwait(continueOnCapturedContext);
+
+        /// <summary>
+        /// Indicates whether this is an invalid default instance
+        /// </summary>
+        public bool IsNull
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _task == null;
+        }
     }
 }

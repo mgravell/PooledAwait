@@ -58,5 +58,14 @@ namespace PooledAwait
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static PooledValueTaskSource CreateSource() => PooledValueTaskSource.Create();
+
+        /// <summary>
+        /// Indicates whether this is an invalid default instance
+        /// </summary>
+        public bool IsNull
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _source == null;
+        }
     }
 }
