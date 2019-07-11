@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PooledAwait.Internal;
+using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
@@ -22,10 +23,12 @@ namespace PooledAwait
             const int DefaultSize = 16;
             int size = DefaultSize;
 
+            var type = typeof(T);
+            if (type == typeof(object)) ThrowHelper.ThrowInvalidOperationException("Pool<Object> is not supported; please use a more specific type");
+
 #if !NETSTANDARD1_3
             const int MinSize = 0, MaxSize = 256;
 
-            var type = typeof(T);
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Pool.ItemBox<>))
             {   // if doing a boxed T, tell us about the T - not the box
                 type = type.GetGenericArguments()[0];

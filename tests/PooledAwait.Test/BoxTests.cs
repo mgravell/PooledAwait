@@ -1,4 +1,5 @@
 ﻿using PooledAwait.Internal;
+using System;
 using Xunit;
 
 namespace PooledAwait.Test
@@ -61,5 +62,13 @@ namespace PooledAwait.Test
 
         [PoolSize(12314114)]
         class MaxClass { }
+
+        [Fact]
+        public void CannotUsePoolObject()
+        {
+            var ex = Assert.Throws<TypeInitializationException>(() => Pool<object>.Size);
+            Assert.IsType<InvalidOperationException>(ex.InnerException);
+            Assert.Equal("Pool<Object> is not supported; please use a more specific type", ex.InnerException.Message);
+        }
     }
 }

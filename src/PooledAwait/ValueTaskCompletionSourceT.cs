@@ -99,6 +99,15 @@ namespace PooledAwait
         }
 
         /// <summary>
+        /// Set the result of the operation
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetException(Exception exception)
+        {
+            if (!TrySetException(exception)) ThrowHelper.ThrowInvalidOperationException();
+        }
+
+        /// <summary>
         /// Set the outcome of the operation
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -120,6 +129,15 @@ namespace PooledAwait
         }
 
         /// <summary>
+        /// Set the result of the operation
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetCanceled(CancellationToken cancellationToken = default)
+        {
+            if (!TrySetCanceled(cancellationToken)) ThrowHelper.ThrowInvalidOperationException();
+        }
+
+        /// <summary>
         /// Set the outcome of the operation
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -134,6 +152,15 @@ namespace PooledAwait
             }
 #endif
             return _state != null && ((TaskCompletionSource<T>)_state).TrySetResult(value);
+        }
+
+        /// <summary>
+        /// Set the result of the operation
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetResult(T value)
+        {
+            if (!TrySetResult(value)) ThrowHelper.ThrowInvalidOperationException();
         }
 
 #if !NETSTANDARD1_3

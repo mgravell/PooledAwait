@@ -7,10 +7,18 @@ namespace PooledAwait.Internal
     internal static class ThrowHelper
     {
         [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static void ThrowInvalidOperationException() => throw new InvalidOperationException();
+        internal static void ThrowInvalidOperationException(string? message = null)
+        {
+            if (string.IsNullOrWhiteSpace(message)) throw new InvalidOperationException();
+            else throw new InvalidOperationException(message);
+        }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static T ThrowInvalidOperationException<T>() => throw new InvalidOperationException();
+        internal static T ThrowInvalidOperationException<T>(string? message = null)
+        {
+            ThrowInvalidOperationException(message);
+            return default!;
+        }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         internal static T ThrowNotSupportedException<T>() => throw new NotSupportedException();
