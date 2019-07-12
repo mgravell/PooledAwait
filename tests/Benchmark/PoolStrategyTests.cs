@@ -9,53 +9,64 @@ namespace Benchmark
 
     /*
      * Typical results below; conclusion - Array is *only* good for PushPopOnce, but that scenario
-     * is already handled by the static; Array is also *teriible* at the TakeEmpty and PutFull
+     * is already handled by the static; By the time we're up to PushPopQuarter (quarter-capacity),
+     * array is "bad" again. Array is also *teriible* at the TakeEmpty and PutFull
      * scenarios, which are both key scenarios in a busy pool, and even PuspPopCapacity is "bad".
      * 
      * The best overall performer is the linked-list, so: let's
      * use that as our impl
      
-| Method |  Job | Runtime |      Categories |         Mean |      Error |     StdDev |       Median | Ratio | RatioSD |
-|------- |----- |-------- |---------------- |-------------:|-----------:|-----------:|-------------:|------:|--------:|
-|  Queue |  Clr |     Clr |       TakeEmpty |    14.504 ns |  0.0159 ns |  0.0124 ns |    14.500 ns |  4.55 |    0.09 |
-|  Stack |  Clr |     Clr |       TakeEmpty |    14.493 ns |  0.0174 ns |  0.0136 ns |    14.490 ns |  4.55 |    0.09 |
-|  Array |  Clr |     Clr |       TakeEmpty |   262.634 ns |  1.3934 ns |  1.3034 ns |   261.810 ns | 82.38 |    1.79 |
-| Linked |  Clr |     Clr |       TakeEmpty |     3.189 ns |  0.0592 ns |  0.0554 ns |     3.200 ns |  1.00 |    0.00 |
-|        |      |         |                 |              |            |            |              |       |         |
-|  Queue |  Clr |     Clr |         PutFull |    14.742 ns |  0.0128 ns |  0.0107 ns |    14.740 ns |  9.18 |    0.03 |
-|  Stack |  Clr |     Clr |         PutFull |    14.787 ns |  0.0897 ns |  0.0796 ns |    14.750 ns |  9.21 |    0.06 |
-|  Array |  Clr |     Clr |         PutFull |   116.343 ns |  0.0954 ns |  0.0796 ns |   116.340 ns | 72.44 |    0.22 |
-| Linked |  Clr |     Clr |         PutFull |     1.606 ns |  0.0054 ns |  0.0051 ns |     1.610 ns |  1.00 |    0.00 |
-|        |      |         |                 |              |            |            |              |       |         |
-|  Queue |  Clr |     Clr |     PushPopOnce |    33.335 ns |  0.1011 ns |  0.0946 ns |    33.280 ns |  1.08 |    0.00 |
-|  Queue |  Clr |     Clr |     PushPopOnce |    32.726 ns |  0.1084 ns |  0.0961 ns |    32.695 ns |  1.06 |    0.00 |
-|  Array |  Clr |     Clr |     PushPopOnce |    19.873 ns |  0.0817 ns |  0.0764 ns |    19.830 ns |  0.64 |    0.00 |
-| Linked |  Clr |     Clr |     PushPopOnce |    30.979 ns |  0.0846 ns |  0.0750 ns |    30.980 ns |  1.00 |    0.00 |
-|        |      |         |                 |              |            |            |              |       |         |
-|  Queue |  Clr |     Clr | PushPopCapacity |   671.571 ns |  3.3753 ns |  2.9922 ns |   670.200 ns |  1.14 |    0.01 |
-|  Queue |  Clr |     Clr | PushPopCapacity |   661.440 ns |  2.6375 ns |  2.4672 ns |   660.000 ns |  1.13 |    0.01 |
-|  Array |  Clr |     Clr | PushPopCapacity | 4,285.657 ns |  4.1265 ns |  3.6580 ns | 4,285.100 ns |  7.30 |    0.02 |
-| Linked |  Clr |     Clr | PushPopCapacity |   587.062 ns |  2.2624 ns |  1.8892 ns |   586.400 ns |  1.00 |    0.00 |
-|        |      |         |                 |              |            |            |              |       |         |
-|  Queue | Core |    Core |       TakeEmpty |    17.407 ns |  0.0165 ns |  0.0129 ns |    17.405 ns |  5.43 |    0.01 |
-|  Stack | Core |    Core |       TakeEmpty |    17.317 ns |  0.0124 ns |  0.0097 ns |    17.320 ns |  5.41 |    0.01 |
-|  Array | Core |    Core |       TakeEmpty |   125.818 ns |  0.7502 ns |  0.7017 ns |   125.340 ns | 39.25 |    0.18 |
-| Linked | Core |    Core |       TakeEmpty |     3.203 ns |  0.0090 ns |  0.0075 ns |     3.200 ns |  1.00 |    0.00 |
-|        |      |         |                 |              |            |            |              |       |         |
-|  Queue | Core |    Core |         PutFull |    17.355 ns |  0.0208 ns |  0.0162 ns |    17.360 ns |  9.59 |    0.02 |
-|  Stack | Core |    Core |         PutFull |    17.389 ns |  0.0139 ns |  0.0108 ns |    17.390 ns |  9.61 |    0.02 |
-|  Array | Core |    Core |         PutFull |   118.301 ns |  0.1272 ns |  0.0993 ns |   118.250 ns | 65.39 |    0.11 |
-| Linked | Core |    Core |         PutFull |     1.809 ns |  0.0030 ns |  0.0027 ns |     1.810 ns |  1.00 |    0.00 |
-|        |      |         |                 |              |            |            |              |       |         |
-|  Queue | Core |    Core |     PushPopOnce |    43.743 ns |  0.1115 ns |  0.0931 ns |    43.690 ns |  1.44 |    0.01 |
-|  Queue | Core |    Core |     PushPopOnce |    41.309 ns |  0.0992 ns |  0.0928 ns |    41.280 ns |  1.36 |    0.01 |
-|  Array | Core |    Core |     PushPopOnce |    13.209 ns |  0.0103 ns |  0.0086 ns |    13.210 ns |  0.44 |    0.00 |
-| Linked | Core |    Core |     PushPopOnce |    30.301 ns |  0.1166 ns |  0.1034 ns |    30.275 ns |  1.00 |    0.00 |
-|        |      |         |                 |              |            |            |              |       |         |
-|  Queue | Core |    Core | PushPopCapacity |   846.071 ns |  2.5055 ns |  2.2210 ns |   846.100 ns |  1.17 |    0.00 |
-|  Queue | Core |    Core | PushPopCapacity |   825.586 ns |  3.0404 ns |  2.6953 ns |   824.100 ns |  1.14 |    0.00 |
-|  Array | Core |    Core | PushPopCapacity | 2,802.560 ns | 32.8024 ns | 30.6834 ns | 2,801.800 ns |  3.88 |    0.05 |
-| Linked | Core |    Core | PushPopCapacity |   721.720 ns |  2.2538 ns |  2.1082 ns |   723.000 ns |  1.00 |    0.00 |
+| Method |  Job | Runtime |      Categories |         Mean |     Error |    StdDev |       Median |  Ratio | RatioSD |
+|------- |----- |-------- |---------------- |-------------:|----------:|----------:|-------------:|-------:|--------:|
+|  Queue |  Clr |     Clr |       TakeEmpty |    14.500 ns | 0.0176 ns | 0.0147 ns |    14.500 ns |   5.65 |    0.01 |
+|  Stack |  Clr |     Clr |       TakeEmpty |    14.495 ns | 0.0105 ns | 0.0088 ns |    14.490 ns |   5.65 |    0.01 |
+|  Array |  Clr |     Clr |       TakeEmpty |   262.012 ns | 0.1567 ns | 0.1308 ns |   261.980 ns | 102.07 |    0.19 |
+| Linked |  Clr |     Clr |       TakeEmpty |     2.567 ns | 0.0053 ns | 0.0047 ns |     2.570 ns |   1.00 |    0.00 |
+|        |      |         |                 |              |           |           |              |        |         |
+|  Queue |  Clr |     Clr |         PutFull |    15.618 ns | 0.6589 ns | 1.4323 ns |    14.785 ns |  14.38 |    1.52 |
+|  Stack |  Clr |     Clr |         PutFull |    14.758 ns | 0.0146 ns | 0.0114 ns |    14.750 ns |  12.68 |    0.10 |
+|  Array |  Clr |     Clr |         PutFull |   117.158 ns | 0.0593 ns | 0.0495 ns |   117.160 ns | 100.67 |    0.76 |
+| Linked |  Clr |     Clr |         PutFull |     1.164 ns | 0.0095 ns | 0.0084 ns |     1.160 ns |   1.00 |    0.00 |
+|        |      |         |                 |              |           |           |              |        |         |
+|  Queue |  Clr |     Clr |     PushPopOnce |    33.328 ns | 0.0968 ns | 0.0906 ns |    33.280 ns |   1.08 |    0.01 |
+|  Queue |  Clr |     Clr |     PushPopOnce |    32.716 ns | 0.1537 ns | 0.1438 ns |    32.690 ns |   1.06 |    0.01 |
+|  Array |  Clr |     Clr |     PushPopOnce |    19.831 ns | 0.0235 ns | 0.0183 ns |    19.825 ns |   0.64 |    0.00 |
+| Linked |  Clr |     Clr |     PushPopOnce |    30.806 ns | 0.1262 ns | 0.1181 ns |    30.800 ns |   1.00 |    0.00 |
+|        |      |         |                 |              |           |           |              |        |         |
+|  Queue |  Clr |     Clr |  PushPopQuarter |   837.967 ns | 0.3326 ns | 0.2597 ns |   838.075 ns |   1.14 |    0.00 |
+|  Queue |  Clr |     Clr |  PushPopQuarter |   825.743 ns | 0.5666 ns | 0.5022 ns |   825.775 ns |   1.12 |    0.00 |
+|  Array |  Clr |     Clr |  PushPopQuarter | 1,477.112 ns | 0.9879 ns | 0.8249 ns | 1,476.800 ns |   2.00 |    0.00 |
+| Linked |  Clr |     Clr |  PushPopQuarter |   737.677 ns | 0.7767 ns | 0.6486 ns |   737.400 ns |   1.00 |    0.00 |
+|        |      |         |                 |              |           |           |              |        |         |
+|  Queue |  Clr |     Clr | PushPopCapacity |   671.785 ns | 2.2005 ns | 1.8375 ns |   670.600 ns |   1.15 |    0.00 |
+|  Queue |  Clr |     Clr | PushPopCapacity |   660.843 ns | 2.1805 ns | 1.9330 ns |   659.700 ns |   1.13 |    0.00 |
+|  Array |  Clr |     Clr | PushPopCapacity | 4,313.338 ns | 2.9127 ns | 2.4323 ns | 4,312.400 ns |   7.36 |    0.02 |
+| Linked |  Clr |     Clr | PushPopCapacity |   586.429 ns | 1.8915 ns | 1.6767 ns |   585.600 ns |   1.00 |    0.00 |
+|        |      |         |                 |              |           |           |              |        |         |
+|  Queue | Core |    Core |       TakeEmpty |    17.463 ns | 0.1816 ns | 0.1517 ns |    17.430 ns |   5.12 |    0.04 |
+|  Stack | Core |    Core |       TakeEmpty |    17.535 ns | 0.0319 ns | 0.0267 ns |    17.540 ns |   5.14 |    0.01 |
+|  Array | Core |    Core |       TakeEmpty |   125.329 ns | 0.0545 ns | 0.0510 ns |   125.310 ns |  36.72 |    0.05 |
+| Linked | Core |    Core |       TakeEmpty |     3.413 ns | 0.0048 ns | 0.0043 ns |     3.415 ns |   1.00 |    0.00 |
+|        |      |         |                 |              |           |           |              |        |         |
+|  Queue | Core |    Core |         PutFull |    17.350 ns | 0.0095 ns | 0.0074 ns |    17.350 ns |  15.05 |    0.06 |
+|  Stack | Core |    Core |         PutFull |    17.368 ns | 0.0230 ns | 0.0192 ns |    17.370 ns |  15.07 |    0.05 |
+|  Array | Core |    Core |         PutFull |   117.256 ns | 0.3167 ns | 0.2963 ns |   117.210 ns | 101.73 |    0.53 |
+| Linked | Core |    Core |         PutFull |     1.153 ns | 0.0049 ns | 0.0046 ns |     1.150 ns |   1.00 |    0.00 |
+|        |      |         |                 |              |           |           |              |        |         |
+|  Queue | Core |    Core |     PushPopOnce |    42.199 ns | 0.1160 ns | 0.1085 ns |    42.120 ns |   1.38 |    0.01 |
+|  Queue | Core |    Core |     PushPopOnce |    41.179 ns | 0.1683 ns | 0.1492 ns |    41.100 ns |   1.35 |    0.01 |
+|  Array | Core |    Core |     PushPopOnce |    12.993 ns | 0.0128 ns | 0.0114 ns |    12.990 ns |   0.43 |    0.00 |
+| Linked | Core |    Core |     PushPopOnce |    30.513 ns | 0.2241 ns | 0.2096 ns |    30.470 ns |   1.00 |    0.00 |
+|        |      |         |                 |              |           |           |              |        |         |
+|  Queue | Core |    Core |  PushPopQuarter | 1,061.417 ns | 0.7060 ns | 0.5512 ns | 1,061.300 ns |   1.43 |    0.00 |
+|  Queue | Core |    Core |  PushPopQuarter | 1,035.825 ns | 1.5696 ns | 1.3914 ns | 1,035.550 ns |   1.40 |    0.00 |
+|  Array | Core |    Core |  PushPopQuarter |   960.818 ns | 2.8905 ns | 2.5623 ns |   961.350 ns |   1.29 |    0.00 |
+| Linked | Core |    Core |  PushPopQuarter |   742.104 ns | 1.2823 ns | 1.1367 ns |   741.775 ns |   1.00 |    0.00 |
+|        |      |         |                 |              |           |           |              |        |         |
+|  Queue | Core |    Core | PushPopCapacity |   847.520 ns | 2.0409 ns | 1.9091 ns |   847.200 ns |   1.43 |    0.00 |
+|  Queue | Core |    Core | PushPopCapacity |   824.738 ns | 2.1207 ns | 1.7708 ns |   823.800 ns |   1.39 |    0.00 |
+|  Array | Core |    Core | PushPopCapacity | 2,794.871 ns | 1.2471 ns | 1.1055 ns | 2,794.600 ns |   4.72 |    0.01 |
+| Linked | Core |    Core | PushPopCapacity |   592.257 ns | 1.7664 ns | 1.5658 ns |   591.800 ns |   1.00 |    0.00 |
 
 
     */
@@ -208,6 +219,50 @@ namespace Benchmark
             {
                 Node<object>.TryPut(ref _head, ref _spares, s_TestObject);
                 Node<object>.TryGet(ref _head, ref _spares);
+            }
+        }
+        const int QuarterCapacity = Capacity / 4;
+        [BenchmarkCategory("PushPopQuarter")]
+        [Benchmark(OperationsPerInvoke = OpsPerInvoke / QuarterCapacity, Description = "Queue")]
+        public void PushPopQuarter_Queue()
+        {
+            for (int i = 0; i < OpsPerInvoke; i++)
+            {
+                for (int j = 0; j < QuarterCapacity; j++) Util<object>.TryPut(_queue, s_TestObject);
+                for (int j = 0; j < QuarterCapacity; j++) Util<object>.TryGet(_queue);
+            }
+        }
+
+        [BenchmarkCategory("PushPopQuarter")]
+        [Benchmark(OperationsPerInvoke = OpsPerInvoke / QuarterCapacity, Description = "Queue")]
+        public void PushPopQuarter_Stack()
+        {
+            for (int i = 0; i < OpsPerInvoke; i++)
+            {
+                for (int j = 0; j < QuarterCapacity; j++) Util<object>.TryPut(_stack, s_TestObject);
+                for (int j = 0; j < QuarterCapacity; j++) Util<object>.TryGet(_stack);
+            }
+        }
+
+        [BenchmarkCategory("PushPopQuarter")]
+        [Benchmark(OperationsPerInvoke = OpsPerInvoke / QuarterCapacity, Description = "Array")]
+        public void PushPopQuarter_Array()
+        {
+            for (int i = 0; i < OpsPerInvoke; i++)
+            {
+                for (int j = 0; j < QuarterCapacity; j++) Util<object>.TryPut(_array, s_TestObject);
+                for (int j = 0; j < QuarterCapacity; j++) Util<object>.TryGet(_array);
+            }
+        }
+
+        [BenchmarkCategory("PushPopQuarter")]
+        [Benchmark(OperationsPerInvoke = OpsPerInvoke / QuarterCapacity, Description = "Linked", Baseline = true)]
+        public void PushPopQuarter_Linked()
+        {
+            for (int i = 0; i < OpsPerInvoke; i++)
+            {
+                for (int j = 0; j < QuarterCapacity; j++) Node<object>.TryPut(ref _head, ref _spares, s_TestObject);
+                for (int j = 0; j < QuarterCapacity; j++) Node<object>.TryGet(ref _head, ref _spares);
             }
         }
 

@@ -11,14 +11,13 @@ namespace PooledAwait
     /// </summary>
     internal static class Pool<T> where T : class
     {
-        internal static int Size => s_global.Length;
+        internal static readonly int Size = CalculateSize();
+        static Node? _liveNodes, _spareNodes = Node.Create(Size);
 
         [ThreadStatic]
         private static T? ts_local;
 
-        private static readonly T?[] s_global = CreatePool();
-
-        static T[] CreatePool()
+        static int CalculateSize()
         {
             const int DefaultSize = 16;
             int size = DefaultSize;
@@ -42,11 +41,7 @@ namespace PooledAwait
                 else size = attrib.Size;
             }
 #endif
-
-#if !NET45
-            if (size == 0) return Array.Empty<T>();
-#endif
-            return new T[size];
+            return size;
         }
 
         /// <summary>
@@ -61,13 +56,12 @@ namespace PooledAwait
 
             static T? FromPool()
             {
-                var pool = s_global;
-                for (int i = 0; i < pool.Length; i++)
-                {
-                    var tmp = Interlocked.Exchange(ref pool[i], null);
-                    if (tmp != null) return tmp;
-                }
-                return null;
+                var taken = Node.Pop(ref _liveNodes);
+                if (taken == null) return null;
+                var value = taken.Value;
+                taken.Value = null;
+                Node.Push(ref _spareNodes, taken);
+                return value;
             }
         }
 
@@ -88,12 +82,56 @@ namespace PooledAwait
             }
             static void ToPool(T value)
             {
-                var pool = s_global;
-                for (int i = 0; i < pool.Length; i++)
+                var taken = Node.Pop(ref _spareNodes);
+                if (taken == null) return;
+                taken.Value = value;
+                Node.Push(ref _liveNodes, taken);
+            }
+        }
+
+        private sealed class Node
+        {
+            public T? Value;
+            public Node? Tail;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal static Node? Pop(ref Node? field)
+            {
+                Node? head = Volatile.Read(ref field);
+                while (true)
                 {
-                    if (Interlocked.CompareExchange(ref pool[i], value, null) == null)
-                        return;
+                    if (head == null) return null;
+                    var newHead = head.Tail;
+
+                    var swap = Interlocked.CompareExchange(ref field, newHead, head);
+                    if ((object?)swap == (object?)head) return head; // success
+                    head = swap; // failure; retry
                 }
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal static void Push(ref Node? field, Node node)
+            {
+                Node? head = Volatile.Read(ref field);
+                while (true)
+                {
+                    node.Tail = head;
+                    var swap = Interlocked.CompareExchange(ref field, node, head);
+                    if ((object?)swap == (object?)head) return; // success
+                    head = swap; // failure; retry
+                }
+            }
+
+            internal static Node? Create(int count)
+            {
+                Node? head = null;
+                for (int i = 0; i < count; i++)
+                {
+                    var newNode = new Node();
+                    newNode.Tail = head;
+                    head = newNode;
+                }
+                return head;
             }
         }
     }
