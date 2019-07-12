@@ -44,6 +44,13 @@ namespace PooledAwait
             return size;
         }
 
+        internal static int Count(out int empty, out int withValues)
+        {
+            empty = Node.Length(ref _spareNodes);
+            withValues = Node.Length(ref _liveNodes);
+            return empty + withValues;
+        }
+
         /// <summary>
         /// Gets an instance from the pool if possible
         /// </summary>
@@ -132,6 +139,18 @@ namespace PooledAwait
                     head = newNode;
                 }
                 return head;
+            }
+
+            internal static int Length(ref Node? field)
+            {
+                int count = 0;
+                var node = Volatile.Read(ref field);
+                while (node != null)
+                {
+                    count++;
+                    node = Volatile.Read(ref node.Tail);
+                }
+                return count;
             }
         }
     }

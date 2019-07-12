@@ -7,16 +7,21 @@ namespace PooledAwait.Test
     {
         class SomeType {}
 
-        static void Flush()
+        static void FlushAndVerify()
         {
             // note: only good for the current thread!
             while (Pool<SomeType>.TryGet() != null) { }
+
+            var total = Pool<SomeType>.Count(out var empty, out var withValues);
+            Assert.Equal(Pool<SomeType>.Size, total);
+            Assert.Equal(Pool<SomeType>.Size, empty);
+            Assert.Equal(0, withValues);
         }
 
         [Fact]
         public void WorksAsExpected_One()
         {
-            Flush();
+            FlushAndVerify();
             
             Assert.Null(Pool<SomeType>.TryGet());
             var obj = new SomeType();
@@ -24,12 +29,14 @@ namespace PooledAwait.Test
             var got = Pool<SomeType>.TryGet();
             Assert.Same(obj, got);
             Assert.Null(Pool<SomeType>.TryGet());
+
+            FlushAndVerify();
         }
 
         [Fact]
         public void WorksAsExpected_Two()
         {
-            Flush();
+            FlushAndVerify();
 
             Assert.Null(Pool<SomeType>.TryGet());
             var obj0 = new SomeType();
@@ -43,12 +50,14 @@ namespace PooledAwait.Test
             Assert.Same(obj0, got0);
             Assert.Same(obj1, got1);
             Assert.Null(Pool<SomeType>.TryGet());
+
+            FlushAndVerify();
         }
 
         [Fact]
         public void WorksAsExpected_Three()
         {
-            Flush();
+            FlushAndVerify();
 
             Assert.Null(Pool<SomeType>.TryGet());
             var obj0 = new SomeType();
@@ -67,12 +76,14 @@ namespace PooledAwait.Test
             Assert.Same(obj2, got1);
             Assert.Same(obj1, got2);
             Assert.Null(Pool<SomeType>.TryGet());
+
+            FlushAndVerify();
         }
 
         [Fact]
         public void WorksAsExpected_Full()
         {
-            Flush();
+            FlushAndVerify();
 
             // note: order doesn't matter
             HashSet<object> knownObjects = new HashSet<object>();
@@ -96,6 +107,8 @@ namespace PooledAwait.Test
 
             // next get should be nil
             Assert.Null(Pool<SomeType>.TryGet());
+
+            FlushAndVerify();
         }
     }
 }
