@@ -44,6 +44,7 @@ namespace PooledAwait.Test
             Task pending = Impl();
             Assert.Equal(!isAsync, pending.IsCompleted);
             await pending;
+            for (int i = 0; i < 5; i++) await Impl();
             Counters.Reset();
             await Impl();
 #if DEBUG
@@ -69,11 +70,12 @@ namespace PooledAwait.Test
         [InlineData(false)]
         public async Task ZeroAllocValueTaskAsync(bool isAsync)
         {
-            ValueTask pending = Impl(isAsync);
+            ValueTask pending = Impl();
             Assert.Equal(!isAsync, pending.IsCompleted);
             await pending;
+            for (int i = 0; i < 5; i++) await Impl();
             Counters.Reset();
-            await Impl(isAsync);
+            await Impl();
 #if DEBUG
             Log?.WriteLine(Counters.Summary());
             Assert.Equal(isAsync ? 1 : 0, Counters.PooledStateRecycled.Value);
@@ -82,7 +84,7 @@ namespace PooledAwait.Test
             Assert.Equal(0, Counters.TotalAllocations);
 #endif
 
-            static async PooledValueTask Impl(bool isAsync)
+            async PooledValueTask Impl()
             {
                 if (isAsync)
                 {
@@ -100,6 +102,7 @@ namespace PooledAwait.Test
             Task<int> pending = Impl();
             Assert.Equal(!isAsync, pending.IsCompleted);
             await pending;
+            for (int i = 0; i < 5; i++) await Impl();
             Counters.Reset();
             Assert.Equal(42, await Impl());
 #if DEBUG
@@ -128,6 +131,7 @@ namespace PooledAwait.Test
             ValueTask<int> pending = Impl();
             Assert.Equal(!isAsync, pending.IsCompleted);
             await pending;
+            for (int i = 0; i < 5; i++) await Impl();
             Counters.Reset();
             Assert.Equal(42, await Impl());
 #if DEBUG

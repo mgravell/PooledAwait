@@ -14,7 +14,7 @@ namespace PooledAwait.Test
     {
         private readonly ITestOutputHelper Log;
 
-        public ContextTests(ITestOutputHelper log) => Log = log;
+        public ContextTests(ITestOutputHelper log) { } /* => Log = log; */
 
         [Fact]
         public async Task SyncContextRespected_Task()
