@@ -161,7 +161,7 @@ namespace PooledAwait
                     }
                 }
             }
-            static readonly object sLock = new object();
+
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal static void Push(ref Node? field, Node node)
             {
@@ -191,8 +191,10 @@ namespace PooledAwait
                 Node? head = null;
                 for (int i = 0; i < count; i++)
                 {
-                    var newNode = new Node();
-                    newNode.Tail = head;
+                    var newNode = new Node
+                    {
+                        Tail = head
+                    };
                     head = newNode;
                 }
                 return head;

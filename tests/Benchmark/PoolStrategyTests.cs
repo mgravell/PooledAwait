@@ -369,8 +369,10 @@ namespace Benchmark
             Node<T>? head = null;
             for (int i = 0; i < count; i++)
             {
-                var newNode = new Node<T>();
-                newNode.Tail = head;
+                var newNode = new Node<T>
+                {
+                    Tail = head
+                };
                 head = newNode;
             }
             return head;

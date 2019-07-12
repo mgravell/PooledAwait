@@ -101,8 +101,10 @@ namespace PooledAwait.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LazyTaskState<T> CreateConstant(T value)
         {
-            var obj = new LazyTaskState<T>();
-            obj._version = Constant;
+            var obj = new LazyTaskState<T>
+            {
+                _version = Constant
+            };
             obj.TrySetResult(Constant, value);
             return obj;
         }
@@ -110,8 +112,10 @@ namespace PooledAwait.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LazyTaskState<T> CreateCanceled()
         {
-            var obj = new LazyTaskState<T>();
-            obj._version = Constant;
+            var obj = new LazyTaskState<T>
+            {
+                _version = Constant
+            };
             obj.TrySetCanceled(Constant);
             return obj;
         }

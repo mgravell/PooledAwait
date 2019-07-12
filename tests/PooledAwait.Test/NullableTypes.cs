@@ -39,7 +39,7 @@ namespace PooledAwait.Test
             Assert.Equal(!s_allowedMutable.Contains(type), Attribute.IsDefined(type, typeof(IsReadOnlyAttribute)));
 #endif
         }
-
+#if NETCOREAPP3_0
         static readonly Type[] s_allowedMutable =
         {
             typeof(Counters.Counter),
@@ -49,6 +49,7 @@ namespace PooledAwait.Test
             typeof(PooledValueTaskMethodBuilder),
             typeof(PooledValueTaskMethodBuilder<>),
         };
+#endif
 
     }
 }
