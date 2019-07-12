@@ -1,5 +1,6 @@
 ﻿using PooledAwait.Internal;
 using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
@@ -12,7 +13,8 @@ namespace PooledAwait
     internal static class Pool<T> where T : class
     {
         internal static readonly int Size = CalculateSize();
-        static Node? _liveNodes, _spareNodes = Node.Create(Size);
+        private static Node? _liveNodes;
+        private static Node? _spareNodes = Node.Create(Size);
 
         [ThreadStatic]
         private static T? ts_local;
@@ -65,6 +67,10 @@ namespace PooledAwait
             {
                 var taken = Node.Pop(ref _liveNodes);
                 if (taken == null) return null;
+#if DEBUG
+                taken.DebugMarkInactive();
+#endif
+
                 var value = taken.Value;
                 taken.Value = null;
                 Node.Push(ref _spareNodes, taken);
@@ -91,6 +97,9 @@ namespace PooledAwait
             {
                 var taken = Node.Pop(ref _spareNodes);
                 if (taken == null) return;
+#if DEBUG
+                taken.DebugMarkActive();
+#endif
                 taken.Value = value;
                 Node.Push(ref _liveNodes, taken);
             }
@@ -98,22 +107,45 @@ namespace PooledAwait
 
         private sealed class Node
         {
-            public T? Value;
-            public Node? Tail;
+#if DEBUG
+            [Conditional("DEBUG")]
+            internal void DebugMarkActive()
+            {
 
+                int actual = Interlocked.CompareExchange(ref ActiveCount, 1, 0);
+                if (actual != 0) throw new InvalidOperationException($"failed to mark active; expected 0, got {actual}");
+            }
+            [Conditional("DEBUG")]
+            internal void DebugMarkInactive()
+            {
+
+                int actual = Interlocked.CompareExchange(ref ActiveCount, 0, 1);
+                if (actual != 1) throw new InvalidOperationException($"failed to mark inactive; expected 1, got {actual}");
+            }
+            int ActiveCount;
+#endif
+            public T? Value;
+            public volatile Node? Tail;
+
+            static readonly object syncLock = new object();
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal static Node? Pop(ref Node? field)
             {
-                Node? head = Volatile.Read(ref field);
-                while (head != null)
+                //lock (syncLock)
                 {
-                    var newHead = head.Tail;
-
-                    var swap = Interlocked.CompareExchange(ref field, newHead, head);
-                    if ((object?)swap == (object?)head) return head; // success
-                    head = swap; // failure; retry
+                    Node? head = Volatile.Read(ref field);
+                    while (head != null)
+                    {
+                        var oldValue = Interlocked.CompareExchange(ref field, head.Tail, head);
+                        if ((object?)oldValue == (object?)head)
+                        {   // success
+                            head.Tail = null; // detach the tail
+                            return head;
+                        }
+                        head = oldValue; // failure; retry
+                    }
+                    return null;
                 }
-                return null;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -123,9 +155,9 @@ namespace PooledAwait
                 while (true)
                 {
                     node.Tail = head;
-                    var swap = Interlocked.CompareExchange(ref field, node, head);
-                    if ((object?)swap == (object?)head) return; // success
-                    head = swap; // failure; retry
+                    var oldValue = Interlocked.CompareExchange(ref field, node, head);
+                    if ((object?)oldValue == (object?)head) return; // success
+                    head = oldValue; // failure; retry
                 }
             }
 
@@ -148,7 +180,7 @@ namespace PooledAwait
                 while (node != null)
                 {
                     count++;
-                    node = Volatile.Read(ref node.Tail);
+                    node = node.Tail;
                 }
                 return count;
             }
