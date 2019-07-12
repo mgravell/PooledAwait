@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Threading;
 
 namespace PooledAwait.Internal
@@ -12,7 +11,7 @@ namespace PooledAwait.Internal
             [Conditional("DEBUG")]
             public void Increment() => Interlocked.Increment(ref _value);
 #if !DEBUG
-            [Obsolete("Release only", false)]
+            [System.Obsolete("Release only", false)]
 #endif
             public long Value => Interlocked.Read(ref _value);
 #pragma warning disable CS0618
@@ -34,7 +33,7 @@ namespace PooledAwait.Internal
             LazyStateAllocated;
 
 #if !DEBUG
-        [Obsolete("Release only", false)]
+        [System.Obsolete("Release only", false)]
 #endif
         public static long TotalAllocations =>
             PooledStateAllocated.Value + StateMachineBoxAllocated.Value
@@ -54,6 +53,17 @@ namespace PooledAwait.Internal
             LazyStateAllocated.Reset();
         }
 
-
+#if !DEBUG
+        [System.Obsolete("Release only", false)]
+#endif
+        internal static string Summary()
+            => $@"SetStateMachine: {SetStateMachine.Value}
+PooledStateAllocated: {PooledStateAllocated.Value}
+PooledStateRecycled: {PooledStateRecycled.Value}
+StateMachineBoxAllocated: {StateMachineBoxAllocated.Value}
+StateMachineBoxRecycled: {StateMachineBoxRecycled.Value}
+ItemBoxAllocated: {ItemBoxAllocated.Value}
+TaskAllocated: {TaskAllocated.Value}
+LazyStateAllocated: {LazyStateAllocated.Value}";
     }
 }

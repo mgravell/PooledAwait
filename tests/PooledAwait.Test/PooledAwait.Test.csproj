@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
-    <!--<TargetFrameworks>netcoreapp3.0;netcoreapp2.1;net462</TargetFrameworks>-->
+    <TargetFrameworks>netcoreapp3.0;netcoreapp2.1;net462</TargetFrameworks>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <IsPackable>false</IsPackable>
     <LangVersion>preview</LangVersion>

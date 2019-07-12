@@ -23,8 +23,9 @@ namespace PooledAwait.Test
         [InlineData(false)]
         public void DefaultTask(bool shouldFault)
         {
-            Counters.Reset();
             var source = ValueTaskCompletionSource<int>.Create();
+            Counters.Reset();
+            source = ValueTaskCompletionSource<int>.Create();
 #if DEBUG
             Assert.Equal(1, Counters.TaskAllocated.Value);
 #endif
@@ -38,8 +39,9 @@ namespace PooledAwait.Test
         [InlineData(false)]
         public void OptimizedTask(bool shouldFault)
         {
-            Counters.Reset();
             var source = ValueTaskCompletionSource<int>.CreateOptimized();
+            Counters.Reset();
+            source = ValueTaskCompletionSource<int>.CreateOptimized();
 #if DEBUG
             Assert.Equal(1, Counters.TaskAllocated.Value);
 #endif
@@ -53,8 +55,9 @@ namespace PooledAwait.Test
         [InlineData(false)]
         public void FallbackTask(bool shouldFault)
         {
-            Counters.Reset();
             var source = ValueTaskCompletionSource<int>.CreateFallback();
+            Counters.Reset();
+            source = ValueTaskCompletionSource<int>.CreateFallback();
 #if DEBUG
             Assert.Equal(1, Counters.TaskAllocated.Value);
 #endif

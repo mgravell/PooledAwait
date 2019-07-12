@@ -127,42 +127,61 @@ namespace PooledAwait
             public T? Value;
             public volatile Node? Tail;
 
-            // this shouldn't be here; this is only while I figure out the
-            // race condition in Pop(/Push)
-            static readonly object s_SyncLock = new object(); // TODO: remove
+            private static readonly Node s_BusySentinel = new Node();
+
+
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            static void SpinUntilFree(ref Node? field)
+            {
+                SpinWait spinner = default;
+                do
+                {
+                    spinner.SpinOnce();
+                } while (ReferenceEquals(Volatile.Read(ref field), s_BusySentinel));
+            }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal static Node? Pop(ref Node? field)
             {
-                lock (s_SyncLock) // TODO: remove
+                while (true)
                 {
-                    Node? head = Volatile.Read(ref field);
-                    while (head != null)
+                    var head = Interlocked.Exchange(ref field, s_BusySentinel);
+                    if (ReferenceEquals(head, s_BusySentinel))
                     {
-                        var oldValue = Interlocked.CompareExchange(ref field, head.Tail, head);
-                        if (ReferenceEquals(oldValue, head)) // success
-                        {
-                            head.Tail = null; // detach the tail
-                            return head;
-                        }
-                        head = oldValue; // failure; retry
+                        // it was already busy (the exchange was a no-op)
+                        SpinUntilFree(ref field);
                     }
-                    return null;
+                    else
+                    {
+                        // so we detached and marked it busy; nobody else
+                        // should be messing, so we can just swap it back in
+                        Interlocked.Exchange(ref field, head?.Tail);
+                        if (head != null) head.Tail = null;
+                        return head;
+                    }
                 }
             }
-
+            static readonly object sLock = new object();
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal static void Push(ref Node? field, Node node)
             {
-                lock (s_SyncLock) // TODO: remove
+                Debug.Assert(node != null);
+                Debug.Assert(node.Tail == null);
+                while (true)
                 {
-                    Node? head = Volatile.Read(ref field);
-                    while (true)
+                    var head = Interlocked.Exchange(ref field, s_BusySentinel);
+                    if (ReferenceEquals(head, s_BusySentinel))
                     {
+                        // it was already busy (the exchange was a no-op)
+                        SpinUntilFree(ref field);
+                    }
+                    else
+                    {
+                        // so we detached and marked it busy; nobody else
+                        // should be messing, so we can just swap it back in
                         node.Tail = head;
-                        var oldValue = Interlocked.CompareExchange(ref field, node, head);
-                        if (ReferenceEquals(oldValue, head)) return; // success
-                        head = oldValue; // failure; retry
+                        Interlocked.Exchange(ref field, node);
+                        return;
                     }
                 }
             }
