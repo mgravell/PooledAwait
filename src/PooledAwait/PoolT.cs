@@ -105,15 +105,15 @@ namespace PooledAwait
             internal static Node? Pop(ref Node? field)
             {
                 Node? head = Volatile.Read(ref field);
-                while (true)
+                while (head != null)
                 {
-                    if (head == null) return null;
                     var newHead = head.Tail;
 
                     var swap = Interlocked.CompareExchange(ref field, newHead, head);
                     if ((object?)swap == (object?)head) return head; // success
                     head = swap; // failure; retry
                 }
+                return null;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
