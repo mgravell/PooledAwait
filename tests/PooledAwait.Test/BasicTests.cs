@@ -24,7 +24,9 @@ namespace PooledAwait.Test
             else Assert.Same(Task.CompletedTask, pending);
             await pending;
 
+#if DEBUG
             Log?.WriteLine(Counters.Summary());
+#endif
 
             async PooledTask Impl()
             {
