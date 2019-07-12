@@ -127,57 +127,62 @@ namespace PooledAwait
             public T? Value;
             public volatile Node? Tail;
 
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal static Node? Pop(ref Node? field)
+            private static readonly Node s_BusySentinel = new Node();
+
+
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            static void SpinUntilFree(ref Node? field)
             {
-                // detach the entire chain (avoids ABA)
-                var oldHead = Interlocked.Exchange(ref field, null);
-                if (oldHead == null) return null; // well that was simple!
-
-                var result = oldHead;
-                var newTail = result.Tail;
-                result.Tail = null; // detach
-
-                if (newTail == null) return result; // nothing to put back
-
-                while (true)
+                SpinWait spinner = default;
+                do
                 {
-                    if (Interlocked.CompareExchange(ref field, newTail, null) == null)
-                    {
-                        // we swapped our chain back in against empty, great!
-                        return result;
-                    }
-
-                    // otherwise, we need to keep retrying, being careful
-                    // not to lose any nodes that are there
-                    oldHead = Interlocked.Exchange(ref field, null);
-                    if (oldHead != null)
-                    {
-                        // at least this way we only need to walk the length
-                        // of the chain that we're inserting, not the length
-                        // of the entire combined chain
-                        var oldTail = newTail.Tail;
-                        newTail.Tail = oldHead;
-                        if (oldTail != null)
-                        {
-                            while (oldHead.Tail != null)
-                                oldHead = oldHead.Tail;
-                            oldHead.Tail = oldTail;
-                        }
-                    }
-                }
+                    spinner.SpinOnce();
+                } while (ReferenceEquals(Volatile.Read(ref field), s_BusySentinel));
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal static void Push(ref Node? field, Node node)
+            internal static Node? Pop(ref Node? field)
             {
-                Node? head = Volatile.Read(ref field);
                 while (true)
                 {
-                    node.Tail = head;
-                    var oldValue = Interlocked.CompareExchange(ref field, node, head);
-                    if (ReferenceEquals(oldValue, head)) return; // success
-                    head = oldValue; // failure; retry
+                    var head = Interlocked.Exchange(ref field, s_BusySentinel);
+                    if (ReferenceEquals(head, s_BusySentinel))
+                    {
+                        // it was already busy (the exchange was a no-op)
+                        SpinUntilFree(ref field);
+                    }
+                    else
+                    {
+                        // so we detached and marked it busy; nobody else
+                        // should be messing, so we can just swap it back in
+                        Interlocked.Exchange(ref field, head?.Tail);
+                        if (head != null) head.Tail = null;
+                        return head;
+                    }
+                }
+            }
+            static readonly object sLock = new object();
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal static void Push(ref Node? field, Node node)
+            {
+                Debug.Assert(node != null);
+                Debug.Assert(node.Tail == null);
+                while (true)
+                {
+                    var head = Interlocked.Exchange(ref field, s_BusySentinel);
+                    if (ReferenceEquals(head, s_BusySentinel))
+                    {
+                        // it was already busy (the exchange was a no-op)
+                        SpinUntilFree(ref field);
+                    }
+                    else
+                    {
+                        // so we detached and marked it busy; nobody else
+                        // should be messing, so we can just swap it back in
+                        node.Tail = head;
+                        Interlocked.Exchange(ref field, node);
+                        return;
+                    }
                 }
             }
 

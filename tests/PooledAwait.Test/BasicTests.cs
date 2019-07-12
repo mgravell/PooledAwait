@@ -24,6 +24,8 @@ namespace PooledAwait.Test
             else Assert.Same(Task.CompletedTask, pending);
             await pending;
 
+            Log?.WriteLine(Counters.Summary());
+
             async PooledTask Impl()
             {
                 if (isAsync)
@@ -45,6 +47,7 @@ namespace PooledAwait.Test
             Counters.Reset();
             await Impl();
 #if DEBUG
+            Log?.WriteLine(Counters.Summary());
             Assert.Equal(isAsync ? 1 : 0, Counters.TaskAllocated.Value);
             Assert.Equal(isAsync ? 1 : 0, Counters.TotalAllocations);
             Assert.Equal(0, Counters.PooledStateRecycled.Value);
@@ -66,18 +69,20 @@ namespace PooledAwait.Test
         [InlineData(false)]
         public async Task ZeroAllocValueTaskAsync(bool isAsync)
         {
-            ValueTask pending = Impl();
+            ValueTask pending = Impl(isAsync);
             Assert.Equal(!isAsync, pending.IsCompleted);
             await pending;
             Counters.Reset();
-            await Impl();
+            await Impl(isAsync);
 #if DEBUG
-            Assert.Equal(0, Counters.TotalAllocations);
+            Log?.WriteLine(Counters.Summary());
             Assert.Equal(isAsync ? 1 : 0, Counters.PooledStateRecycled.Value);
             Assert.Equal(isAsync ? 2 : 0, Counters.StateMachineBoxRecycled.Value);
+            Assert.Equal(0, Counters.StateMachineBoxAllocated.Value);
+            Assert.Equal(0, Counters.TotalAllocations);
 #endif
 
-            async PooledValueTask Impl()
+            static async PooledValueTask Impl(bool isAsync)
             {
                 if (isAsync)
                 {
@@ -98,9 +103,9 @@ namespace PooledAwait.Test
             Counters.Reset();
             Assert.Equal(42, await Impl());
 #if DEBUG
+            Log?.WriteLine(Counters.Summary());
             Assert.Equal(isAsync ? 1 : 0, Counters.TotalAllocations);
             Assert.Equal(isAsync ? 1 : 0, Counters.TaskAllocated.Value);
-            Assert.Equal(0, Counters.PooledStateRecycled.Value);
             Assert.Equal(isAsync ? 2 : 0, Counters.StateMachineBoxRecycled.Value);
 #endif
 
@@ -126,6 +131,7 @@ namespace PooledAwait.Test
             Counters.Reset();
             Assert.Equal(42, await Impl());
 #if DEBUG
+            Log?.WriteLine(Counters.Summary());
             Assert.Equal(0, Counters.TotalAllocations);
             Assert.Equal(isAsync ? 1 : 0, Counters.PooledStateRecycled.Value);
             Assert.Equal(isAsync ? 2 : 0, Counters.StateMachineBoxRecycled.Value);
