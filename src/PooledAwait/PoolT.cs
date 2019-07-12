@@ -127,43 +127,57 @@ namespace PooledAwait
             public T? Value;
             public volatile Node? Tail;
 
-            // this shouldn't be here; this is only while I figure out the
-            // race condition in Pop(/Push)
-            static readonly object s_SyncLock = new object(); // TODO: remove
-
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal static Node? Pop(ref Node? field)
             {
-                lock (s_SyncLock) // TODO: remove
+                // detach the entire chain (avoids ABA)
+                var oldHead = Interlocked.Exchange(ref field, null);
+                if (oldHead == null) return null; // well that was simple!
+
+                var result = oldHead;
+                var newTail = result.Tail;
+                result.Tail = null; // detach
+
+                if (newTail == null) return result; // nothing to put back
+
+                while (true)
                 {
-                    Node? head = Volatile.Read(ref field);
-                    while (head != null)
+                    if (Interlocked.CompareExchange(ref field, newTail, null) == null)
                     {
-                        var oldValue = Interlocked.CompareExchange(ref field, head.Tail, head);
-                        if (ReferenceEquals(oldValue, head)) // success
-                        {
-                            head.Tail = null; // detach the tail
-                            return head;
-                        }
-                        head = oldValue; // failure; retry
+                        // we swapped our chain back in against empty, great!
+                        return result;
                     }
-                    return null;
+
+                    // otherwise, we need to keep retrying, being careful
+                    // not to lose any nodes that are there
+                    oldHead = Interlocked.Exchange(ref field, null);
+                    if (oldHead != null)
+                    {
+                        // at least this way we only need to walk the length
+                        // of the chain that we're inserting, not the length
+                        // of the entire combined chain
+                        var oldTail = newTail.Tail;
+                        newTail.Tail = oldHead;
+                        if (oldTail != null)
+                        {
+                            while (oldHead.Tail != null)
+                                oldHead = oldHead.Tail;
+                            oldHead.Tail = oldTail;
+                        }
+                    }
                 }
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal static void Push(ref Node? field, Node node)
             {
-                lock (s_SyncLock) // TODO: remove
+                Node? head = Volatile.Read(ref field);
+                while (true)
                 {
-                    Node? head = Volatile.Read(ref field);
-                    while (true)
-                    {
-                        node.Tail = head;
-                        var oldValue = Interlocked.CompareExchange(ref field, node, head);
-                        if (ReferenceEquals(oldValue, head)) return; // success
-                        head = oldValue; // failure; retry
-                    }
+                    node.Tail = head;
+                    var oldValue = Interlocked.CompareExchange(ref field, node, head);
+                    if (ReferenceEquals(oldValue, head)) return; // success
+                    head = oldValue; // failure; retry
                 }
             }
 

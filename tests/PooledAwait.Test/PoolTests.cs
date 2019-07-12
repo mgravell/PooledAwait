@@ -154,7 +154,7 @@ namespace PooledAwait.Test
                         Pool<SomeType>.TryPut(obj);
                     }
                 }
-                Assert.True(found >= Pool<SomeType>.Size, "too few");
+                Assert.True(found >= Pool<SomeType>.Size * .075, "too few");
                 Assert.True(found <= Pool<SomeType>.Size + 1, "too many");
             }
             FlushAndVerify();
