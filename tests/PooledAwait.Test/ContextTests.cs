@@ -12,9 +12,9 @@ namespace PooledAwait.Test
     [Collection("Sequential")]
     public class ContextTests
     {
-#pragma warning disable CS8618 // uninitialized
+#pragma warning disable CS8618, CS0649 // uninitialized
         private readonly ITestOutputHelper Log;
-#pragma warning restore CS8618
+#pragma warning restore CS8618, CS0649
 
         // public ContextTests(ITestOutputHelper log) => Log = log; */
 
