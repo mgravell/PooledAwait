@@ -127,11 +127,14 @@ namespace PooledAwait
             public T? Value;
             public volatile Node? Tail;
 
-            static readonly object syncLock = new object();
+            // this shouldn't be here; this is only while I figure out the
+            // race condition in Pop(/Push)
+            static readonly object s_SyncLock = new object(); // TODO: remove
+
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal static Node? Pop(ref Node? field)
             {
-                //lock (syncLock)
+                lock (s_SyncLock) // TODO: remove
                 {
                     Node? head = Volatile.Read(ref field);
                     while (head != null)
@@ -151,13 +154,16 @@ namespace PooledAwait
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal static void Push(ref Node? field, Node node)
             {
-                Node? head = Volatile.Read(ref field);
-                while (true)
+                lock (s_SyncLock) // TODO: remove
                 {
-                    node.Tail = head;
-                    var oldValue = Interlocked.CompareExchange(ref field, node, head);
-                    if (ReferenceEquals(oldValue, head)) return; // success
-                    head = oldValue; // failure; retry
+                    Node? head = Volatile.Read(ref field);
+                    while (true)
+                    {
+                        node.Tail = head;
+                        var oldValue = Interlocked.CompareExchange(ref field, node, head);
+                        if (ReferenceEquals(oldValue, head)) return; // success
+                        head = oldValue; // failure; retry
+                    }
                 }
             }
 
