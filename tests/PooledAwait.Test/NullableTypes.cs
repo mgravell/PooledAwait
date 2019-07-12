@@ -35,7 +35,9 @@ namespace PooledAwait.Test
             Assert.Same(type, type.GetMethod(nameof(GetHashCode), Type.EmptyTypes).DeclaringType);
             Assert.Same(type, type.GetMethod(nameof(Equals), new Type[] { typeof(object) }).DeclaringType);
 
+#if NETCOREAPP3_0
             Assert.Equal(!s_allowedMutable.Contains(type), Attribute.IsDefined(type, typeof(IsReadOnlyAttribute)));
+#endif
         }
 
         static readonly Type[] s_allowedMutable =

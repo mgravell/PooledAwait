@@ -2,3 +2,4 @@
 bin/
 obj/
 BenchmarkDotNet.Artifacts/
+*.csproj.user

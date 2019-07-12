@@ -1,6 +1,7 @@
 ﻿using System;
 using PooledAwait.Internal;
 using Xunit;
+using System.Threading.Tasks;
 
 namespace PooledAwait.Test
 {
@@ -66,7 +67,7 @@ namespace PooledAwait.Test
         {
             var task = source.Task;
             Assert.False(task.IsCompleted);
-            Assert.False(task.IsCompletedSuccessfully);
+            Assert.False(task.Status == TaskStatus.RanToCompletion);
 
             if (shouldFault)
             {
@@ -78,7 +79,7 @@ namespace PooledAwait.Test
                 {
                     Assert.True(task.IsFaulted);
                     Assert.True(task.IsCompleted);
-                    Assert.False(task.IsCompletedSuccessfully);
+                    Assert.False(task.Status == TaskStatus.RanToCompletion);
                     var ex = Assert.Throws<AggregateException>(() => task.Result);
                     Assert.IsType<FormatException>(ex.InnerException);
                 }
@@ -93,7 +94,7 @@ namespace PooledAwait.Test
                 {
                     Assert.False(task.IsFaulted);
                     Assert.True(task.IsCompleted);
-                    Assert.True(task.IsCompletedSuccessfully);
+                    Assert.True(task.Status == TaskStatus.RanToCompletion);
                     Assert.Equal(42, task.Result);
                 }
             }

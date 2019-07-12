@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if NETCOREAPP3_0
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -421,3 +422,4 @@ namespace PooledAwait.Test
         }
     }
 }
+#endif

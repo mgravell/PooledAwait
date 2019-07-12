@@ -137,8 +137,8 @@ namespace PooledAwait
                     while (head != null)
                     {
                         var oldValue = Interlocked.CompareExchange(ref field, head.Tail, head);
-                        if ((object?)oldValue == (object?)head)
-                        {   // success
+                        if (ReferenceEquals(oldValue, head)) // success
+                        {
                             head.Tail = null; // detach the tail
                             return head;
                         }
@@ -156,7 +156,7 @@ namespace PooledAwait
                 {
                     node.Tail = head;
                     var oldValue = Interlocked.CompareExchange(ref field, node, head);
-                    if ((object?)oldValue == (object?)head) return; // success
+                    if (ReferenceEquals(oldValue, head)) return; // success
                     head = oldValue; // failure; retry
                 }
             }

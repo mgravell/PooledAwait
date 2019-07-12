@@ -24,7 +24,7 @@ namespace PooledAwait.Test
             await allDone.Task;
             LockedAdd(list, "c");
 
-            Assert.Equal("a,d,e,f,b,c", string.Join(',', list));
+            Assert.Equal("a,d,e,f,b,c", string.Join(",", list));
 
             async ValueTask TestAsync()
             {
@@ -50,7 +50,7 @@ namespace PooledAwait.Test
             await allDone.Task;
             LockedAdd(list, "c");
 
-            Assert.Equal("a,d,b,e,f,c", string.Join(',', list));
+            Assert.Equal("a,d,b,e,f,c", string.Join(",", list));
 
             async FireAndForget TestAsync()
             {

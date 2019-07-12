@@ -475,7 +475,7 @@ namespace PooledAwait.Test
         {
             Log?.WriteLine($"status: {pending.Status}");
             Assert.Equal(!isAsync, pending.IsCompleted);
-            Assert.Equal(!isAsync && status == ValueTaskSourceStatus.Succeeded, pending.IsCompletedSuccessfully);
+            Assert.Equal(!isAsync && status == ValueTaskSourceStatus.Succeeded, pending.Status == TaskStatus.RanToCompletion);
             Assert.Equal(!isAsync && status == ValueTaskSourceStatus.Canceled, pending.IsCanceled);
             Assert.Equal(!isAsync && status == ValueTaskSourceStatus.Faulted, pending.IsFaulted);
 
@@ -609,7 +609,7 @@ namespace PooledAwait.Test
         {
             Log?.WriteLine($"status: {pending.Status}");
             Assert.Equal(!isAsync, pending.IsCompleted);
-            Assert.Equal(!isAsync && status == ValueTaskSourceStatus.Succeeded, pending.IsCompletedSuccessfully);
+            Assert.Equal(!isAsync && status == ValueTaskSourceStatus.Succeeded, pending.Status == TaskStatus.RanToCompletion);
             Assert.Equal(!isAsync && status == ValueTaskSourceStatus.Canceled, pending.IsCanceled);
             Assert.Equal(!isAsync && status == ValueTaskSourceStatus.Faulted, pending.IsFaulted);
 
