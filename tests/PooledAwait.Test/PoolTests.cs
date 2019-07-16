@@ -20,12 +20,8 @@ namespace PooledAwait.Test
             // note: only good for the current thread!
             while (Pool<SomeType>.TryGet() != null) { }
 
-            var total = Pool<SomeType>.Count(out var empty, out var withValues);
-            var size = Pool<SomeType>.Size;
-
-            Assert.True(size == empty, $"expected {size} empty; got {empty} empty, {withValues} with values, {total} total");
-            Assert.True(0 == withValues, $"expected 0 with values; got {empty} empty, {withValues} with values, {total} total");
-            Assert.True(size == total, $"expected {size} total; got {empty} empty, {withValues} with values, {total} total");
+            var count = Pool<SomeType>.Count();
+            Assert.True(0 == count, $"expected 0 values");
         }
 
         [Fact]
@@ -82,9 +78,9 @@ namespace PooledAwait.Test
             var got2 = Pool<SomeType>.TryGet();
             // note: order is respected here because of the thread-static
             Assert.Same(obj0, got0);
-            // order gets inverted here because: stack
-            Assert.Same(obj2, got1);
-            Assert.Same(obj1, got2);
+            // order gets respected here because: queue
+            Assert.Same(obj1, got1);
+            Assert.Same(obj2, got2);
             Assert.Null(Pool<SomeType>.TryGet());
 
             FlushAndVerify();

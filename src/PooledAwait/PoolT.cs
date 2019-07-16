@@ -1,5 +1,6 @@
 ﻿using PooledAwait.Internal;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -13,8 +14,8 @@ namespace PooledAwait
     internal static class Pool<T> where T : class
     {
         internal static readonly int Size = CalculateSize();
-        private static Node? _liveNodes;
-        private static Node? _spareNodes = Node.Create(Size);
+        private static readonly Queue<T> _queue = new Queue<T>(Size);
+        private volatile static int _countEstimate;
 
         [ThreadStatic]
         private static T? ts_local;
@@ -46,11 +47,12 @@ namespace PooledAwait
             return size;
         }
 
-        internal static int Count(out int empty, out int withValues)
+        internal static int Count()
         {
-            empty = Node.Length(ref _spareNodes);
-            withValues = Node.Length(ref _liveNodes);
-            return empty + withValues;
+            lock (_queue)
+            {
+                return _queue.Count;
+            }
         }
 
         /// <summary>
@@ -65,16 +67,19 @@ namespace PooledAwait
 
             static T? FromPool()
             {
-                var taken = Node.Pop(ref _liveNodes);
-                if (taken == null) return null;
-#if DEBUG
-                taken.DebugMarkInactive();
-#endif
-
-                var value = taken.Value;
-                taken.Value = null;
-                Node.Push(ref _spareNodes, taken);
-                return value;
+                if (_countEstimate != 0)
+                {
+                    lock (_queue)
+                    {
+                        int count = _queue.Count;
+                        if (count != 0)
+                        {
+                            _countEstimate = count - 1;
+                            return _queue.Dequeue();
+                        }
+                    }
+                }
+                return null;
             }
         }
 
@@ -95,114 +100,18 @@ namespace PooledAwait
             }
             static void ToPool(T value)
             {
-                var taken = Node.Pop(ref _spareNodes);
-                if (taken == null) return;
-#if DEBUG
-                taken.DebugMarkActive();
-#endif
-                taken.Value = value;
-                Node.Push(ref _liveNodes, taken);
-            }
-        }
-
-        private sealed class Node
-        {
-#if DEBUG
-            [Conditional("DEBUG")]
-            internal void DebugMarkActive()
-            {
-
-                int actual = Interlocked.CompareExchange(ref ActiveCount, 1, 0);
-                if (actual != 0) throw new InvalidOperationException($"failed to mark active; expected 0, got {actual}");
-            }
-            [Conditional("DEBUG")]
-            internal void DebugMarkInactive()
-            {
-
-                int actual = Interlocked.CompareExchange(ref ActiveCount, 0, 1);
-                if (actual != 1) throw new InvalidOperationException($"failed to mark inactive; expected 1, got {actual}");
-            }
-            int ActiveCount;
-#endif
-            public T? Value;
-            public volatile Node? Tail;
-
-            private static readonly Node s_BusySentinel = new Node();
-
-
-            [MethodImpl(MethodImplOptions.NoInlining)]
-            static Node? TakeBySpinning(ref Node? field)
-            {
-                SpinWait spinner = default;
-                Node? taken;
-                do
+                if (_countEstimate < Size)
                 {
-                    spinner.SpinOnce();
-                    taken = Interlocked.Exchange(ref field, s_BusySentinel);
-                } while (ReferenceEquals(taken, s_BusySentinel));
-                return taken;
-            }
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal static Node? Pop(ref Node? field)
-            {
-                var head = Interlocked.Exchange(ref field, s_BusySentinel);
-                if (ReferenceEquals(head, s_BusySentinel))
-                {
-                    // it was already busy (the exchange was a no-op)
-                    head = TakeBySpinning(ref field);
-                }
-
-                // so we detached and marked it busy; nobody else
-                // should be messing, so we can just swap it back in
-                Interlocked.Exchange(ref field, head?.Tail);
-                if (head != null) head.Tail = null;
-                return head;
-            }
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal static void Push(ref Node? field, Node node)
-            {
-                Debug.Assert(node != null);
-                Debug.Assert(node.Tail == null);
-
-                var head = Interlocked.Exchange(ref field, s_BusySentinel);
-                if (ReferenceEquals(head, s_BusySentinel))
-                {
-                    // it was already busy (the exchange was a no-op)
-                    head = TakeBySpinning(ref field);
-                }
-
-                // so we detached and marked it busy; nobody else
-                // should be messing, so we can just swap it back in
-                node.Tail = head;
-                Interlocked.Exchange(ref field, node);
-            }
-
-            internal static Node? Create(int count)
-            {
-                Node? head = null;
-                for (int i = 0; i < count; i++)
-                {
-                    var newNode = new Node
+                    lock (_queue)
                     {
-                        Tail = head
-                    };
-                    head = newNode;
+                        int count = _queue.Count;
+                        if (count < Size)
+                        {
+                            _countEstimate = count + 1;
+                            _queue.Enqueue(value);
+                        }
+                    }
                 }
-                return head;
-            }
-
-            internal static int Length(ref Node? field)
-            {
-                int count = 0;
-                var node = Volatile.Read(ref field);
-                while (node != null)
-                {
-                    count++;
-                    node = node.Tail;
-                }
-                return count;
             }
         }
     }

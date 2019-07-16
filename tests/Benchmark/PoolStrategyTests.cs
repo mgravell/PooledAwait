@@ -8,68 +8,66 @@ namespace Benchmark
 {
 
     /*
-     * Typical results below; conclusion - Array is *only* good for PushPopOnce, but that scenario
-     * is already handled by the static; By the time we're up to PushPopQuarter (quarter-capacity),
-     * array is "bad" again. Array is also *teriible* at the TakeEmpty and PutFull
-     * scenarios, which are both key scenarios in a busy pool, and even PuspPopCapacity is "bad".
-     * 
-     * The best overall performer is the linked-list, so: let's
-     * use that as our impl
-     
-| Method |  Job | Runtime |      Categories |         Mean |     Error |    StdDev |       Median |  Ratio | RatioSD |
-|------- |----- |-------- |---------------- |-------------:|----------:|----------:|-------------:|-------:|--------:|
-|  Queue |  Clr |     Clr |       TakeEmpty |    14.500 ns | 0.0176 ns | 0.0147 ns |    14.500 ns |   5.65 |    0.01 |
-|  Stack |  Clr |     Clr |       TakeEmpty |    14.495 ns | 0.0105 ns | 0.0088 ns |    14.490 ns |   5.65 |    0.01 |
-|  Array |  Clr |     Clr |       TakeEmpty |   262.012 ns | 0.1567 ns | 0.1308 ns |   261.980 ns | 102.07 |    0.19 |
-| Linked |  Clr |     Clr |       TakeEmpty |     2.567 ns | 0.0053 ns | 0.0047 ns |     2.570 ns |   1.00 |    0.00 |
-|        |      |         |                 |              |           |           |              |        |         |
-|  Queue |  Clr |     Clr |         PutFull |    15.618 ns | 0.6589 ns | 1.4323 ns |    14.785 ns |  14.38 |    1.52 |
-|  Stack |  Clr |     Clr |         PutFull |    14.758 ns | 0.0146 ns | 0.0114 ns |    14.750 ns |  12.68 |    0.10 |
-|  Array |  Clr |     Clr |         PutFull |   117.158 ns | 0.0593 ns | 0.0495 ns |   117.160 ns | 100.67 |    0.76 |
-| Linked |  Clr |     Clr |         PutFull |     1.164 ns | 0.0095 ns | 0.0084 ns |     1.160 ns |   1.00 |    0.00 |
-|        |      |         |                 |              |           |           |              |        |         |
-|  Queue |  Clr |     Clr |     PushPopOnce |    33.328 ns | 0.0968 ns | 0.0906 ns |    33.280 ns |   1.08 |    0.01 |
-|  Queue |  Clr |     Clr |     PushPopOnce |    32.716 ns | 0.1537 ns | 0.1438 ns |    32.690 ns |   1.06 |    0.01 |
-|  Array |  Clr |     Clr |     PushPopOnce |    19.831 ns | 0.0235 ns | 0.0183 ns |    19.825 ns |   0.64 |    0.00 |
-| Linked |  Clr |     Clr |     PushPopOnce |    30.806 ns | 0.1262 ns | 0.1181 ns |    30.800 ns |   1.00 |    0.00 |
-|        |      |         |                 |              |           |           |              |        |         |
-|  Queue |  Clr |     Clr |  PushPopQuarter |   837.967 ns | 0.3326 ns | 0.2597 ns |   838.075 ns |   1.14 |    0.00 |
-|  Queue |  Clr |     Clr |  PushPopQuarter |   825.743 ns | 0.5666 ns | 0.5022 ns |   825.775 ns |   1.12 |    0.00 |
-|  Array |  Clr |     Clr |  PushPopQuarter | 1,477.112 ns | 0.9879 ns | 0.8249 ns | 1,476.800 ns |   2.00 |    0.00 |
-| Linked |  Clr |     Clr |  PushPopQuarter |   737.677 ns | 0.7767 ns | 0.6486 ns |   737.400 ns |   1.00 |    0.00 |
-|        |      |         |                 |              |           |           |              |        |         |
-|  Queue |  Clr |     Clr | PushPopCapacity |   671.785 ns | 2.2005 ns | 1.8375 ns |   670.600 ns |   1.15 |    0.00 |
-|  Queue |  Clr |     Clr | PushPopCapacity |   660.843 ns | 2.1805 ns | 1.9330 ns |   659.700 ns |   1.13 |    0.00 |
-|  Array |  Clr |     Clr | PushPopCapacity | 4,313.338 ns | 2.9127 ns | 2.4323 ns | 4,312.400 ns |   7.36 |    0.02 |
-| Linked |  Clr |     Clr | PushPopCapacity |   586.429 ns | 1.8915 ns | 1.6767 ns |   585.600 ns |   1.00 |    0.00 |
-|        |      |         |                 |              |           |           |              |        |         |
-|  Queue | Core |    Core |       TakeEmpty |    17.463 ns | 0.1816 ns | 0.1517 ns |    17.430 ns |   5.12 |    0.04 |
-|  Stack | Core |    Core |       TakeEmpty |    17.535 ns | 0.0319 ns | 0.0267 ns |    17.540 ns |   5.14 |    0.01 |
-|  Array | Core |    Core |       TakeEmpty |   125.329 ns | 0.0545 ns | 0.0510 ns |   125.310 ns |  36.72 |    0.05 |
-| Linked | Core |    Core |       TakeEmpty |     3.413 ns | 0.0048 ns | 0.0043 ns |     3.415 ns |   1.00 |    0.00 |
-|        |      |         |                 |              |           |           |              |        |         |
-|  Queue | Core |    Core |         PutFull |    17.350 ns | 0.0095 ns | 0.0074 ns |    17.350 ns |  15.05 |    0.06 |
-|  Stack | Core |    Core |         PutFull |    17.368 ns | 0.0230 ns | 0.0192 ns |    17.370 ns |  15.07 |    0.05 |
-|  Array | Core |    Core |         PutFull |   117.256 ns | 0.3167 ns | 0.2963 ns |   117.210 ns | 101.73 |    0.53 |
-| Linked | Core |    Core |         PutFull |     1.153 ns | 0.0049 ns | 0.0046 ns |     1.150 ns |   1.00 |    0.00 |
-|        |      |         |                 |              |           |           |              |        |         |
-|  Queue | Core |    Core |     PushPopOnce |    42.199 ns | 0.1160 ns | 0.1085 ns |    42.120 ns |   1.38 |    0.01 |
-|  Queue | Core |    Core |     PushPopOnce |    41.179 ns | 0.1683 ns | 0.1492 ns |    41.100 ns |   1.35 |    0.01 |
-|  Array | Core |    Core |     PushPopOnce |    12.993 ns | 0.0128 ns | 0.0114 ns |    12.990 ns |   0.43 |    0.00 |
-| Linked | Core |    Core |     PushPopOnce |    30.513 ns | 0.2241 ns | 0.2096 ns |    30.470 ns |   1.00 |    0.00 |
-|        |      |         |                 |              |           |           |              |        |         |
-|  Queue | Core |    Core |  PushPopQuarter | 1,061.417 ns | 0.7060 ns | 0.5512 ns | 1,061.300 ns |   1.43 |    0.00 |
-|  Queue | Core |    Core |  PushPopQuarter | 1,035.825 ns | 1.5696 ns | 1.3914 ns | 1,035.550 ns |   1.40 |    0.00 |
-|  Array | Core |    Core |  PushPopQuarter |   960.818 ns | 2.8905 ns | 2.5623 ns |   961.350 ns |   1.29 |    0.00 |
-| Linked | Core |    Core |  PushPopQuarter |   742.104 ns | 1.2823 ns | 1.1367 ns |   741.775 ns |   1.00 |    0.00 |
-|        |      |         |                 |              |           |           |              |        |         |
-|  Queue | Core |    Core | PushPopCapacity |   847.520 ns | 2.0409 ns | 1.9091 ns |   847.200 ns |   1.43 |    0.00 |
-|  Queue | Core |    Core | PushPopCapacity |   824.738 ns | 2.1207 ns | 1.7708 ns |   823.800 ns |   1.39 |    0.00 |
-|  Array | Core |    Core | PushPopCapacity | 2,794.871 ns | 1.2471 ns | 1.1055 ns | 2,794.600 ns |   4.72 |    0.01 |
-| Linked | Core |    Core | PushPopCapacity |   592.257 ns | 1.7664 ns | 1.5658 ns |   591.800 ns |   1.00 |    0.00 |
+    Typical results below; conclusion - Array is *only* good for PushPopOnce, but that scenario
+    is already handled by the static; LinkedList was tempting before the ABA problem surfaced,
+    but with the fixes for that, the performance deteriorates significantly, such that it becomes
+    undesirable; we might as well pick and choose between a queue and a stack.
 
 
-    */
+    | Method |  Job | Runtime |      Categories |        Mean |     Error |    StdDev | Ratio | RatioSD |
+    |------- |----- |-------- |---------------- |------------:|----------:|----------:|------:|--------:|
+    |  Queue |  Clr |     Clr |       TakeEmpty |    14.28 ns |  0.007 ns |  0.006 ns |  0.43 |    0.00 |
+    |  Stack |  Clr |     Clr |       TakeEmpty |    14.49 ns |  0.007 ns |  0.005 ns |  0.44 |    0.00 |
+    |  Array |  Clr |     Clr |       TakeEmpty |   261.74 ns |  0.209 ns |  0.185 ns |  7.96 |    0.02 |
+    | Linked |  Clr |     Clr |       TakeEmpty |    32.88 ns |  0.110 ns |  0.098 ns |  1.00 |    0.00 |
+    |        |      |         |                 |             |           |           |       |         |
+    |  Queue |  Clr |     Clr |         PutFull |    14.74 ns |  0.008 ns |  0.006 ns |  0.46 |    0.00 |
+    |  Stack |  Clr |     Clr |         PutFull |    14.79 ns |  0.094 ns |  0.084 ns |  0.46 |    0.00 |
+    |  Array |  Clr |     Clr |         PutFull |   117.10 ns |  0.089 ns |  0.079 ns |  3.62 |    0.01 |
+    | Linked |  Clr |     Clr |         PutFull |    32.38 ns |  0.113 ns |  0.100 ns |  1.00 |    0.00 |
+    |        |      |         |                 |             |           |           |       |         |
+    |  Queue |  Clr |     Clr |     PushPopOnce |    33.31 ns |  0.098 ns |  0.092 ns |  0.27 |    0.00 |
+    |  Stack |  Clr |     Clr |     PushPopOnce |    32.77 ns |  0.196 ns |  0.174 ns |  0.27 |    0.00 |
+    |  Array |  Clr |     Clr |     PushPopOnce |    19.88 ns |  0.099 ns |  0.093 ns |  0.16 |    0.00 |
+    | Linked |  Clr |     Clr |     PushPopOnce |   122.73 ns |  0.143 ns |  0.126 ns |  1.00 |    0.00 |
+    |        |      |         |                 |             |           |           |       |         |
+    |  Queue |  Clr |     Clr |  PushPopQuarter |   838.78 ns |  1.416 ns |  1.182 ns |  0.27 |    0.00 |
+    |  Stack |  Clr |     Clr |  PushPopQuarter |   824.98 ns |  4.554 ns |  3.803 ns |  0.27 |    0.00 |
+    |  Array |  Clr |     Clr |  PushPopQuarter | 1,484.93 ns |  1.713 ns |  1.518 ns |  0.48 |    0.00 |
+    | Linked |  Clr |     Clr |  PushPopQuarter | 3,068.15 ns |  2.910 ns |  2.722 ns |  1.00 |    0.00 |
+    |        |      |         |                 |             |           |           |       |         |
+    |  Queue |  Clr |     Clr | PushPopCapacity |   672.43 ns |  1.988 ns |  1.859 ns |  0.27 |    0.00 |
+    |  Stack |  Clr |     Clr | PushPopCapacity |   661.65 ns |  2.289 ns |  2.141 ns |  0.27 |    0.00 |
+    |  Array |  Clr |     Clr | PushPopCapacity | 4,289.29 ns | 10.743 ns | 10.049 ns |  1.75 |    0.01 |
+    | Linked |  Clr |     Clr | PushPopCapacity | 2,456.54 ns |  4.447 ns |  3.713 ns |  1.00 |    0.00 |
+    |        |      |         |                 |             |           |           |       |         |
+    |  Queue | Core |    Core |       TakeEmpty |    17.31 ns |  0.008 ns |  0.006 ns |  0.50 |    0.00 |
+    |  Stack | Core |    Core |       TakeEmpty |    17.41 ns |  0.026 ns |  0.021 ns |  0.50 |    0.00 |
+    |  Array | Core |    Core |       TakeEmpty |   125.34 ns |  0.053 ns |  0.041 ns |  3.60 |    0.01 |
+    | Linked | Core |    Core |       TakeEmpty |    34.80 ns |  0.104 ns |  0.093 ns |  1.00 |    0.00 |
+    |        |      |         |                 |             |           |           |       |         |
+    |  Queue | Core |    Core |         PutFull |    17.41 ns |  0.083 ns |  0.078 ns |  0.58 |    0.00 |
+    |  Stack | Core |    Core |         PutFull |    17.42 ns |  0.099 ns |  0.088 ns |  0.59 |    0.00 |
+    |  Array | Core |    Core |         PutFull |   117.21 ns |  0.291 ns |  0.243 ns |  3.94 |    0.02 |
+    | Linked | Core |    Core |         PutFull |    29.77 ns |  0.106 ns |  0.094 ns |  1.00 |    0.00 |
+    |        |      |         |                 |             |           |           |       |         |
+    |  Queue | Core |    Core |     PushPopOnce |    42.42 ns |  0.133 ns |  0.118 ns |  0.38 |    0.00 |
+    |  Stack | Core |    Core |     PushPopOnce |    41.86 ns |  0.105 ns |  0.093 ns |  0.38 |    0.00 |
+    |  Array | Core |    Core |     PushPopOnce |    13.22 ns |  0.009 ns |  0.008 ns |  0.12 |    0.00 |
+    | Linked | Core |    Core |     PushPopOnce |   110.80 ns |  0.705 ns |  0.660 ns |  1.00 |    0.00 |
+    |        |      |         |                 |             |           |           |       |         |
+    |  Queue | Core |    Core |  PushPopQuarter | 1,073.27 ns |  1.278 ns |  1.133 ns |  0.38 |    0.00 |
+    |  Stack | Core |    Core |  PushPopQuarter | 1,054.11 ns |  2.613 ns |  2.444 ns |  0.37 |    0.00 |
+    |  Array | Core |    Core |  PushPopQuarter |   961.63 ns |  2.607 ns |  2.438 ns |  0.34 |    0.00 |
+    | Linked | Core |    Core |  PushPopQuarter | 2,833.23 ns |  4.159 ns |  3.890 ns |  1.00 |    0.00 |
+    |        |      |         |                 |             |           |           |       |         |
+    |  Queue | Core |    Core | PushPopCapacity |   857.20 ns |  2.797 ns |  2.479 ns |  0.38 |    0.00 |
+    |  Stack | Core |    Core | PushPopCapacity |   824.37 ns |  2.185 ns |  1.937 ns |  0.36 |    0.00 |
+    |  Array | Core |    Core | PushPopCapacity | 2,791.16 ns |  6.472 ns |  6.054 ns |  1.23 |    0.01 |
+    | Linked | Core |    Core | PushPopCapacity | 2,260.40 ns |  6.156 ns |  5.758 ns |  1.00 |    0.00 |
+
+
+        */
     [CoreJob, ClrJob]
     [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
     [CategoriesColumn]
@@ -79,7 +77,7 @@ namespace Benchmark
         private readonly Queue<object> _queue = new Queue<object>(Capacity);
         private readonly Stack<object> _stack = new Stack<object>(Capacity);
         private readonly object[] _array = new object[Capacity];
-        private Node<object>? _spares = Node<object>.Create(Capacity), _head;
+        
         static readonly object s_TestObject = new object();
 
         const int OpsPerInvoke = 10000;
@@ -90,7 +88,7 @@ namespace Benchmark
             while (Util<object>.TryGet(_queue) != null) { }
             while (Util<object>.TryGet(_stack) != null) { }
             while (Util<object>.TryGet(_array) != null) { }
-            while (Node<object>.TryGet(ref _head, ref _spares) != null) { }
+            while (SimplifiedPool<object>.TryGet() != null) { }
         }
 
         [BenchmarkCategory("TakeEmpty")]
@@ -129,7 +127,7 @@ namespace Benchmark
         {
             for (int i = 0; i < OpsPerInvoke; i++)
             {
-                Node<object>.TryGet(ref _head, ref _spares);
+                SimplifiedPool<object>.TryGet();
             }
         }
 
@@ -170,10 +168,10 @@ namespace Benchmark
         [Benchmark(OperationsPerInvoke = OpsPerInvoke, Description = "Linked", Baseline = true)]
         public void PutFull_Linked()
         {
-            while (Node<object>.TryPut(ref _head, ref _spares, s_TestObject)) { }
+            while (SimplifiedPool<object>.TryPut(s_TestObject)) { }
             for (int i = 0; i < OpsPerInvoke; i++)
             {
-                Node<object>.TryPut(ref _head, ref _spares, s_TestObject);
+                SimplifiedPool<object>.TryPut(s_TestObject);
             }
         }
 
@@ -190,7 +188,7 @@ namespace Benchmark
         }
 
         [BenchmarkCategory("PushPopOnce")]
-        [Benchmark(OperationsPerInvoke = OpsPerInvoke, Description = "Queue")]
+        [Benchmark(OperationsPerInvoke = OpsPerInvoke, Description = "Stack")]
         public void PushPopOnce_Stack()
         {
             for (int i = 0; i < OpsPerInvoke; i++)
@@ -217,8 +215,8 @@ namespace Benchmark
         {
             for (int i = 0; i < OpsPerInvoke; i++)
             {
-                Node<object>.TryPut(ref _head, ref _spares, s_TestObject);
-                Node<object>.TryGet(ref _head, ref _spares);
+                SimplifiedPool<object>.TryPut(s_TestObject);
+                SimplifiedPool<object>.TryGet();
             }
         }
         const int QuarterCapacity = Capacity / 4;
@@ -234,7 +232,7 @@ namespace Benchmark
         }
 
         [BenchmarkCategory("PushPopQuarter")]
-        [Benchmark(OperationsPerInvoke = OpsPerInvoke / QuarterCapacity, Description = "Queue")]
+        [Benchmark(OperationsPerInvoke = OpsPerInvoke / QuarterCapacity, Description = "Stack")]
         public void PushPopQuarter_Stack()
         {
             for (int i = 0; i < OpsPerInvoke; i++)
@@ -261,8 +259,8 @@ namespace Benchmark
         {
             for (int i = 0; i < OpsPerInvoke; i++)
             {
-                for (int j = 0; j < QuarterCapacity; j++) Node<object>.TryPut(ref _head, ref _spares, s_TestObject);
-                for (int j = 0; j < QuarterCapacity; j++) Node<object>.TryGet(ref _head, ref _spares);
+                for (int j = 0; j < QuarterCapacity; j++) SimplifiedPool<object>.TryPut(s_TestObject);
+                for (int j = 0; j < QuarterCapacity; j++) SimplifiedPool<object>.TryGet();
             }
         }
 
@@ -278,7 +276,7 @@ namespace Benchmark
         }
 
         [BenchmarkCategory("PushPopCapacity")]
-        [Benchmark(OperationsPerInvoke = OpsPerInvoke / Capacity, Description = "Queue")]
+        [Benchmark(OperationsPerInvoke = OpsPerInvoke / Capacity, Description = "Stack")]
         public void PushPopCapacity_Stack()
         {
             for (int i = 0; i < OpsPerInvoke / Capacity; i++)
@@ -305,77 +303,103 @@ namespace Benchmark
         {
             for (int i = 0; i < OpsPerInvoke / Capacity; i++)
             {
-                for (int j = 0; j < Capacity; j++) Node<object>.TryPut(ref _head, ref _spares, s_TestObject);
-                for (int j = 0; j < Capacity; j++) Node<object>.TryGet(ref _head, ref _spares);
+                for (int j = 0; j < Capacity; j++) SimplifiedPool<object>.TryPut(s_TestObject);
+                for (int j = 0; j < Capacity; j++) SimplifiedPool<object>.TryGet();
             }
         }
 
 
     }
-    sealed class Node<T> where T : class
-    {
-        public T? Value;
-        public Node<T>? Tail;
 
-        public static T? TryGet(ref Node<T>? head, ref Node<T>? spares)
+    static class SimplifiedPool<T> where T : class
+    {
+        private static Node? _spares = Create(PoolStrategyTests.Capacity), _head;
+
+        public static T? TryGet()
         {
-            Node<T>? taken = PopNode(ref head);
+            Node? taken = PopNode(ref _head);
             if (taken == null) return null;
             var value = taken.Value;
             taken.Value = null;
-            PushNode(ref spares, taken);
+            PushNode(ref _spares, taken);
             return value;
         }
 
-        public static bool TryPut(ref Node<T>? head, ref Node<T>? spares, T value)
+        public static bool TryPut(T value)
         {
-            Node<T>? taken = PopNode(ref spares);
+            Node? taken = PopNode(ref _spares);
             if (taken == null) return false;
             taken.Value = value;
-            PushNode(ref head, taken);
+            PushNode(ref _head, taken);
             return true;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Node<T>? PopNode(ref Node<T>? field)
-        {
-            Node<T>? head = Volatile.Read(ref field);
-            while (true)
-            {
-                if (head == null) return null;
-                var newHead = head.Tail;
+        private static readonly Node s_BusySentinel = new Node();
 
-                var swap = Interlocked.CompareExchange(ref field, newHead, head);
-                if ((object?)swap == (object?)head) return head; // success
-                head = swap; // failure; retry
-            }
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static Node? TakeBySpinning(ref Node? field)
+        {
+            SpinWait spinner = default;
+            Node? taken;
+            do
+            {
+                spinner.SpinOnce();
+                taken = Interlocked.Exchange(ref field, s_BusySentinel);
+            } while (ReferenceEquals(taken, s_BusySentinel));
+            return taken;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void PushNode(ref Node<T>? field, Node<T> node)
+        private static Node? PopNode(ref Node? field)
         {
-            Node<T>? head = Volatile.Read(ref field);
-            while (true)
+            var head = Interlocked.Exchange(ref field, s_BusySentinel);
+            if (ReferenceEquals(head, s_BusySentinel))
             {
-                node.Tail = head;
-                var swap = Interlocked.CompareExchange(ref field, node, head);
-                if ((object?)swap == (object?)head) return; // success
-                head = swap; // failure; retry
+                // it was already busy (the exchange was a no-op)
+                head = TakeBySpinning(ref field);
             }
+
+            // so we detached and marked it busy; nobody else
+            // should be messing, so we can just swap it back in
+            Interlocked.Exchange(ref field, head?.Tail);
+            if (head != null) head.Tail = null;
+            return head;
         }
 
-        public static Node<T>? Create(int count)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void PushNode(ref Node? field, Node node)
         {
-            Node<T>? head = null;
+            var head = Interlocked.Exchange(ref field, s_BusySentinel);
+            if (ReferenceEquals(head, s_BusySentinel))
+            {
+                // it was already busy (the exchange was a no-op)
+                head = TakeBySpinning(ref field);
+            }
+
+            // so we detached and marked it busy; nobody else
+            // should be messing, so we can just swap it back in
+            node.Tail = head;
+            Interlocked.Exchange(ref field, node);
+        }
+
+        private static Node? Create(int count)
+        {
+            Node? head = null;
             for (int i = 0; i < count; i++)
             {
-                var newNode = new Node<T>
+                var newNode = new Node
                 {
                     Tail = head
                 };
                 head = newNode;
             }
             return head;
+        }
+
+        sealed class Node
+        {
+            public T? Value;
+            public Node? Tail;
         }
     }
 
