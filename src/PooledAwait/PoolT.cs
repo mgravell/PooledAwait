@@ -131,35 +131,33 @@ namespace PooledAwait
 
 
             [MethodImpl(MethodImplOptions.NoInlining)]
-            static void SpinUntilFree(ref Node? field)
+            static Node? TakeBySpinning(ref Node? field)
             {
                 SpinWait spinner = default;
+                Node? taken;
                 do
                 {
                     spinner.SpinOnce();
-                } while (ReferenceEquals(Volatile.Read(ref field), s_BusySentinel));
+                    taken = Interlocked.Exchange(ref field, s_BusySentinel);
+                } while (ReferenceEquals(taken, s_BusySentinel));
+                return taken;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal static Node? Pop(ref Node? field)
             {
-                while (true)
+                var head = Interlocked.Exchange(ref field, s_BusySentinel);
+                if (ReferenceEquals(head, s_BusySentinel))
                 {
-                    var head = Interlocked.Exchange(ref field, s_BusySentinel);
-                    if (ReferenceEquals(head, s_BusySentinel))
-                    {
-                        // it was already busy (the exchange was a no-op)
-                        SpinUntilFree(ref field);
-                    }
-                    else
-                    {
-                        // so we detached and marked it busy; nobody else
-                        // should be messing, so we can just swap it back in
-                        Interlocked.Exchange(ref field, head?.Tail);
-                        if (head != null) head.Tail = null;
-                        return head;
-                    }
+                    // it was already busy (the exchange was a no-op)
+                    head = TakeBySpinning(ref field);
                 }
+
+                // so we detached and marked it busy; nobody else
+                // should be messing, so we can just swap it back in
+                Interlocked.Exchange(ref field, head?.Tail);
+                if (head != null) head.Tail = null;
+                return head;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -167,23 +165,18 @@ namespace PooledAwait
             {
                 Debug.Assert(node != null);
                 Debug.Assert(node.Tail == null);
-                while (true)
+
+                var head = Interlocked.Exchange(ref field, s_BusySentinel);
+                if (ReferenceEquals(head, s_BusySentinel))
                 {
-                    var head = Interlocked.Exchange(ref field, s_BusySentinel);
-                    if (ReferenceEquals(head, s_BusySentinel))
-                    {
-                        // it was already busy (the exchange was a no-op)
-                        SpinUntilFree(ref field);
-                    }
-                    else
-                    {
-                        // so we detached and marked it busy; nobody else
-                        // should be messing, so we can just swap it back in
-                        node.Tail = head;
-                        Interlocked.Exchange(ref field, node);
-                        return;
-                    }
+                    // it was already busy (the exchange was a no-op)
+                    head = TakeBySpinning(ref field);
                 }
+
+                // so we detached and marked it busy; nobody else
+                // should be messing, so we can just swap it back in
+                node.Tail = head;
+                Interlocked.Exchange(ref field, node);
             }
 
             internal static Node? Create(int count)
