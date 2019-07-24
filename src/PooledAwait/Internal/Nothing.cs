@@ -4,6 +4,6 @@
     {
         public override string ToString() => nameof(Nothing);
         public override int GetHashCode() => 0;
-        public override bool Equals(object obj) => obj is Nothing;
+        public override bool Equals(object? obj) => obj is Nothing;
     }
 }

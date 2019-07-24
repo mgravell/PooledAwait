@@ -17,7 +17,7 @@ namespace PooledAwait
     public readonly struct ValueTaskCompletionSource<T>
     {
         /// <summary><see cref="Object.Equals(Object)"/></summary>
-        public override bool Equals(object obj) => obj is ValueTaskCompletionSource<T> other && _state == other._state;
+        public override bool Equals(object? obj) => obj is ValueTaskCompletionSource<T> other && _state == other._state;
         /// <summary><see cref="Object.GetHashCode"/></summary>
         public override int GetHashCode() => _state == null ? 0 : _state.GetHashCode();
         /// <summary><see cref="Object.ToString"/></summary>
@@ -172,7 +172,7 @@ namespace PooledAwait
                 return (Func<Task<T>, TArg, bool>)Delegate.CreateDelegate(
                 typeof(Func<Task<T>, TArg, bool>),
                 typeof(Task<T>).GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance,
-                    null, new[] { typeof(TArg) }, null));
+                    null, new[] { typeof(TArg) }, null)!);
             }
             catch { return null; }
         }
@@ -202,7 +202,7 @@ namespace PooledAwait
                     return false;
                 }
                 catch (AggregateException ex) when (ex.InnerException is InvalidOperationException) { }
-                if (!(task.Exception.InnerException is InvalidOperationException)) return false;
+                if (!(task.Exception?.InnerException is InvalidOperationException)) return false;
                 return true;
             }
             catch { return false; }

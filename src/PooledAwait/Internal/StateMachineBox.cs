@@ -95,8 +95,8 @@ namespace PooledAwait.Internal
             }
         }
 
-        static readonly SendOrPostCallback s_SendOrPostCallback = state => ((StateMachineBox<TStateMachine>)state).Execute();
-        static readonly WaitCallback s_WaitCallback = state => ((StateMachineBox<TStateMachine>)state).Execute();
+        static readonly SendOrPostCallback s_SendOrPostCallback = state => ((StateMachineBox<TStateMachine>?)state!)?.Execute();
+        static readonly WaitCallback s_WaitCallback = state => ((StateMachineBox<TStateMachine>?)state)?.Execute();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Execute()

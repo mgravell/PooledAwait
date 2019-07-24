@@ -13,7 +13,7 @@ namespace PooledAwait
     public readonly struct LazyTaskCompletionSource<T> : IDisposable
     {
         /// <summary><see cref="Object.Equals(Object)"/></summary>
-        public override bool Equals(object obj) => obj is LazyTaskCompletionSource<T> ltcs && _state == ltcs._state && _token == ltcs._token;
+        public override bool Equals(object? obj) => obj is LazyTaskCompletionSource<T> ltcs && _state == ltcs._state && _token == ltcs._token;
         /// <summary><see cref="Object.GetHashCode"/></summary>
         public override int GetHashCode() => (_state == null ? 0 : _state.GetHashCode()) ^ _token;
         /// <summary><see cref="Object.ToString"/></summary>

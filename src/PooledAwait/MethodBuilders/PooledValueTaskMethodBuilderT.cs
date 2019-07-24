@@ -14,7 +14,7 @@ namespace PooledAwait.MethodBuilders
     [EditorBrowsable(EditorBrowsableState.Never)]
     public struct PooledValueTaskMethodBuilder<T>
     {
-        public override bool Equals(object obj) => ThrowHelper.ThrowNotSupportedException<bool>();
+        public override bool Equals(object? obj) => ThrowHelper.ThrowNotSupportedException<bool>();
         public override int GetHashCode() => ThrowHelper.ThrowNotSupportedException<int>();
         public override string ToString() => nameof(PooledValueTaskMethodBuilder);
 

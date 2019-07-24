@@ -31,9 +31,9 @@ namespace PooledAwait.Test
         [InlineData(typeof(ConfiguredYieldAwaitable.ConfiguredYieldAwaiter))]
         public void ValueTypesOverrideAllMethods(Type type)
         {
-            Assert.Same(type, type.GetMethod(nameof(ToString), Type.EmptyTypes).DeclaringType);
-            Assert.Same(type, type.GetMethod(nameof(GetHashCode), Type.EmptyTypes).DeclaringType);
-            Assert.Same(type, type.GetMethod(nameof(Equals), new Type[] { typeof(object) }).DeclaringType);
+            Assert.Same(type, type.GetMethod(nameof(ToString), Type.EmptyTypes)!.DeclaringType);
+            Assert.Same(type, type.GetMethod(nameof(GetHashCode), Type.EmptyTypes)!.DeclaringType);
+            Assert.Same(type, type.GetMethod(nameof(Equals), new Type[] { typeof(object) })!.DeclaringType);
 
 #if NETCOREAPP3_0
             Assert.Equal(!s_allowedMutable.Contains(type), Attribute.IsDefined(type, typeof(IsReadOnlyAttribute)));
