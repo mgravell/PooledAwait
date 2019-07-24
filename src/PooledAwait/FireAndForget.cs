@@ -13,7 +13,7 @@ namespace PooledAwait
     public readonly struct FireAndForget
     {
         /// <summary><see cref="Object.Equals(Object)"/></summary>
-        public override bool Equals(object obj) => ThrowHelper.ThrowNotSupportedException<bool>();
+        public override bool Equals(object? obj) => ThrowHelper.ThrowNotSupportedException<bool>();
         /// <summary><see cref="Object.GetHashCode"/></summary>
         public override int GetHashCode() => ThrowHelper.ThrowNotSupportedException<int>();
         /// <summary><see cref="Object.ToString"/></summary>

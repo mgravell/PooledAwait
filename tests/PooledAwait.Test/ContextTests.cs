@@ -301,27 +301,27 @@ namespace PooledAwait.Test
                     _state = null;
                 }
             }
-            public override void Post(SendOrPostCallback d, object state)
+            public override void Post(SendOrPostCallback d, object? state)
             {
                 if (d == null) return;
                 Interlocked.Increment(ref _postCount);
                 Log(d, state);
-                ThreadPool.UnsafeQueueUserWorkItem(Box.Create(this, d, state), true);
+                ThreadPool.UnsafeQueueUserWorkItem(Box.Create(this, d, state!), true);
             }
 
-            private void Log(SendOrPostCallback d, object state, [CallerMemberName] string? caller = null)
+            private void Log(SendOrPostCallback d, object? state, [CallerMemberName] string? caller = null)
             {
                 _log?.WriteLine($"[{caller}]: {d.Method.Name} on {d?.Target?.GetType().FullName} with {state?.GetType().FullName}");
             }
 
-            public override void Send(SendOrPostCallback d, object state)
+            public override void Send(SendOrPostCallback d, object? state)
             {
                 if (d == null) return;
                 Interlocked.Increment(ref _sendCount);
                 Log(d, state);
                 d(state);
             }
-            private readonly SynchronizationContext _old;
+            private readonly SynchronizationContext? _old;
             private MySyncContext(ITestOutputHelper log)
             {
                 _log = log;
@@ -355,7 +355,7 @@ namespace PooledAwait.Test
                 _log = log;
                 for (int i = 0; i < 3; i++)
                 {
-                    new Thread(obj => ((MyTaskScheduler)obj).Run()).Start(this);
+                    new Thread(obj => ((MyTaskScheduler)obj!).Run()).Start(this);
                 }
             }
             private void Run()

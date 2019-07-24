@@ -36,7 +36,7 @@ namespace PooledAwait
                 type = type.GetGenericArguments()[0];
             }
 
-            var attrib = (PoolSizeAttribute)Attribute.GetCustomAttribute(type, typeof(PoolSizeAttribute), true);
+            var attrib = (PoolSizeAttribute?)Attribute.GetCustomAttribute(type, typeof(PoolSizeAttribute), true);
             if (attrib != null)
             {
                 if (attrib.Size < MinSize) size = MinSize;

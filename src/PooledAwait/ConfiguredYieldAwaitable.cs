@@ -8,7 +8,7 @@ namespace PooledAwait
     public readonly struct ConfiguredYieldAwaitable
     {
         /// <summary><see cref="Object.Equals(Object)"/></summary>
-        public override bool Equals(object obj) => obj is ConfiguredYieldAwaitable other && other._continueOnCapturedContext == _continueOnCapturedContext;
+        public override bool Equals(object? obj) => obj is ConfiguredYieldAwaitable other && other._continueOnCapturedContext == _continueOnCapturedContext;
         /// <summary><see cref="Object.GetHashCode"/></summary>
         public override int GetHashCode() => _continueOnCapturedContext ? 1 : 0;
         /// <summary><see cref="Object.ToString"/></summary>
@@ -29,7 +29,7 @@ namespace PooledAwait
         public readonly struct ConfiguredYieldAwaiter : ICriticalNotifyCompletion, INotifyCompletion
         {
             /// <summary><see cref="Object.Equals(Object)"/></summary>
-            public override bool Equals(object obj) => obj is ConfiguredYieldAwaiter other && other._continueOnCapturedContext == _continueOnCapturedContext;
+            public override bool Equals(object? obj) => obj is ConfiguredYieldAwaiter other && other._continueOnCapturedContext == _continueOnCapturedContext;
             /// <summary><see cref="Object.GetHashCode"/></summary>
             public override int GetHashCode() => _continueOnCapturedContext ? 1 : 0;
             /// <summary><see cref="Object.ToString"/></summary>
@@ -68,7 +68,7 @@ namespace PooledAwait
                 else YieldNoContext(continuation, false);
             }
 
-            private static readonly WaitCallback s_waitCallbackRunAction = state => ((Action)state)?.Invoke();
+            private static readonly WaitCallback s_waitCallbackRunAction = state => ((Action?)state)?.Invoke();
 
 #if PLAT_THREADPOOLWORKITEM
             private sealed class ContinuationWorkItem : IThreadPoolWorkItem

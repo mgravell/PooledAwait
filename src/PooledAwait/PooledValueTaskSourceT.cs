@@ -12,7 +12,7 @@ namespace PooledAwait
     public readonly struct PooledValueTaskSource<T>
     {
         /// <summary><see cref="Object.Equals(Object)"/></summary>
-        public override bool Equals(object obj) => obj is PooledValueTaskSource<T> pvt && _token == pvt._token &&
+        public override bool Equals(object? obj) => obj is PooledValueTaskSource<T> pvt && _token == pvt._token &&
             (_source != null ? _source == pvt._source : (pvt._source == null && EqualityComparer<T>.Default.Equals(_value, pvt._value)));
         /// <summary><see cref="Object.GetHashCode"/></summary>
         public override int GetHashCode() => (_source == null ? EqualityComparer<T>.Default.GetHashCode(_value) : _source.GetHashCode()) ^ _token;

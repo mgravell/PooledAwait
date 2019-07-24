@@ -68,7 +68,7 @@ namespace PooledAwait.Test
         {
             var ex = Assert.Throws<TypeInitializationException>(() => Pool<object>.Size);
             Assert.IsType<InvalidOperationException>(ex.InnerException);
-            Assert.Equal("Pool<Object> is not supported; please use a more specific type", ex.InnerException.Message);
+            Assert.Equal("Pool<Object> is not supported; please use a more specific type", ex?.InnerException?.Message);
         }
     }
 }
