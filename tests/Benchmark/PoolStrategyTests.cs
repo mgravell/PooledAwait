@@ -1,8 +1,10 @@
-﻿using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Configs;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
+
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Jobs;
 
 namespace Benchmark
 {
@@ -68,7 +70,7 @@ namespace Benchmark
 
 
         */
-    [CoreJob, ClrJob]
+    [SimpleJob(RuntimeMoniker.NetCoreApp31), SimpleJob(RuntimeMoniker.Net48)]
     [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
     [CategoriesColumn]
     public class PoolStrategyTests
@@ -77,7 +79,7 @@ namespace Benchmark
         private readonly Queue<object> _queue = new Queue<object>(Capacity);
         private readonly Stack<object> _stack = new Stack<object>(Capacity);
         private readonly object[] _array = new object[Capacity];
-        
+
         static readonly object s_TestObject = new object();
 
         const int OpsPerInvoke = 10000;
