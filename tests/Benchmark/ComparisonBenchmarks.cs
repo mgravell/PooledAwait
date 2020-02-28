@@ -1,11 +1,14 @@
-﻿using BenchmarkDotNet.Attributes;
+﻿using System.Threading.Tasks;
+
+using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Jobs;
+
 using PooledAwait;
-using System.Threading.Tasks;
 
 namespace Benchmark
 {
-    [MemoryDiagnoser, CoreJob, ClrJob]
+    [MemoryDiagnoser, SimpleJob(RuntimeMoniker.NetCoreApp31), SimpleJob(RuntimeMoniker.Net48)]
     [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
     [CategoriesColumn]
     public class ComparisonBenchmarks
