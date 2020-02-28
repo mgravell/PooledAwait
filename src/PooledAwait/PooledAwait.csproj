@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1;netstandard2.1;netstandard2.0;net45;net461;netstandard1.3</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.0;netstandard2.1;netstandard2.0;net45;net461;netstandard1.3</TargetFrameworks>
     <SignAssembly>true</SignAssembly>
     <IncludeTaskExtensions>true</IncludeTaskExtensions>
     <IncludeAsyncInterfaces>false</IncludeAsyncInterfaces>
@@ -23,7 +23,7 @@
     <IncludeAsyncInterfaces>true</IncludeAsyncInterfaces>
   </PropertyGroup>
 
-  <PropertyGroup Condition="$(TargetFramework)=='netcoreapp3.1'">
+  <PropertyGroup Condition="$(TargetFramework)=='netcoreapp3.0'">
     <DefineConstants>$(DefineConstants);PLAT_THREADPOOLWORKITEM;PLAT_MRVTSC</DefineConstants>
     <IncludeTaskExtensions>false</IncludeTaskExtensions>
   </PropertyGroup>
