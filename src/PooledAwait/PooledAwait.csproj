@@ -34,7 +34,7 @@
 
   <ItemGroup>
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.3" Condition="$(IncludeTaskExtensions)=='true'" />
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.0.0-preview7.19362.9" Condition="$(IncludeAsyncInterfaces)=='true'" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.0.0" Condition="$(IncludeAsyncInterfaces)=='true'" />
 
     <PackageReference Include="Nerdbank.GitVersioning" Version="2.3.183">
       <PrivateAssets>all</PrivateAssets>
