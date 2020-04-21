@@ -3,12 +3,18 @@
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.0;netstandard2.1;netstandard2.0;net45;net461;netstandard1.3</TargetFrameworks>
     <SignAssembly>true</SignAssembly>
-    <IncludeTaskExtensions>true</IncludeTaskExtensions>
+    <IncludeTaskExtensions>false</IncludeTaskExtensions>
     <IncludeAsyncInterfaces>false</IncludeAsyncInterfaces>
     <PackageId>PooledAwait</PackageId>
     <GeneratePackageOnBuild Condition="$(Configuration)=='Release'">true</GeneratePackageOnBuild>
   </PropertyGroup>
 
+  <PropertyGroup Condition="$(TargetFramework)=='netstandard1.3'">
+    <IncludeTaskExtensions>true</IncludeTaskExtensions>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(TargetFramework)=='net45'">
+    <IncludeTaskExtensions>true</IncludeTaskExtensions>
+  </PropertyGroup>
   <PropertyGroup Condition="$(TargetFramework)=='netstandard2.1'">
     <DefineConstants>$(DefineConstants);PLAT_MRVTSC</DefineConstants>
   </PropertyGroup>
@@ -25,7 +31,6 @@
 
   <PropertyGroup Condition="$(TargetFramework)=='netcoreapp3.0'">
     <DefineConstants>$(DefineConstants);PLAT_THREADPOOLWORKITEM;PLAT_MRVTSC</DefineConstants>
-    <IncludeTaskExtensions>false</IncludeTaskExtensions>
   </PropertyGroup>
 
   <ItemGroup Condition="$(TargetFramework)=='netstandard1.3'">
@@ -33,13 +38,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.3" Condition="$(IncludeTaskExtensions)=='true'" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" Condition="$(IncludeTaskExtensions)=='true'" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.0" Condition="$(IncludeAsyncInterfaces)=='true'" />
-
-    <PackageReference Include="Nerdbank.GitVersioning" Version="2.3.183">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
 
 </Project>
