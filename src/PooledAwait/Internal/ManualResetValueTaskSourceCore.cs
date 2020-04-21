@@ -281,7 +281,7 @@ namespace PooledAwait.Internal
                     }
                     else
                     {
-                        _continuation(_continuationState);
+                        _continuation!(_continuationState);
                     }
                     break;
 

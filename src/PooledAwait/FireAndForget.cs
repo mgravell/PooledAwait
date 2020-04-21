@@ -22,7 +22,7 @@ namespace PooledAwait
         /// <summary>
         /// Raised when exceptions occur on fire-and-forget methods
         /// </summary>
-        public static event Action<Exception> Exception;
+        public static event Action<Exception>? Exception;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void OnException(Exception exception)
